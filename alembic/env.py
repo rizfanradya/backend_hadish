@@ -6,7 +6,7 @@ from sqlalchemy import pool
 from alembic import context
 from database import Base, DATABASE_URL
 
-from models.hadish import *
+from models.hadith import *
 from models.role import *
 from models.typehadith import *
 from models.user import *

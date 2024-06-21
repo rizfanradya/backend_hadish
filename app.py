@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from utils import SERVER_PORT
 
+import routers.hadith as hadith
+import routers.role as role
+import routers.typehadith as typehadith
 import routers.user as user
 
 app = FastAPI(
@@ -19,6 +22,9 @@ app.add_middleware(
 )
 
 app.include_router(user.router, tags=["User API"], prefix="/api")
+app.include_router(hadith.router, tags=["Hadith API"], prefix="/api")
+app.include_router(typehadith.router, tags=["Type Hadith API"], prefix="/api")
+app.include_router(role.router, tags=["Role API"], prefix="/api")
 
 
 @app.get("/")

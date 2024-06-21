@@ -181,7 +181,7 @@ def update_user(session: Session, id: int, info_update: CreateAndUpdateUser):
         )
 
 
-def deleteUser(session: Session, id: int):
+def delete_user(session: Session, id: int):
     user_info = get_user_by_id(session, id, False)
     session.delete(user_info)
     session.commit()

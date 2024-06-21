@@ -1,2 +1,2 @@
-alembic revision --autogenerate -m ""
+alembic revision --autogenerate -m "rev"
 alembic upgrade head

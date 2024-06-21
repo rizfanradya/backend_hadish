@@ -4,7 +4,7 @@ from database import Base
 from sqlalchemy.sql import func
 
 
-class Role(Base):
+class TypeHadith(Base):
     __tablename__ = "type_hadith"
 
     id = Column(Integer, primary_key=True, index=True)

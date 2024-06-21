@@ -15,5 +15,5 @@ class CreateAndUpdateUser(BaseModel):
 
 
 class UserLogin(BaseModel):
-    username: str
+    email: str
     password: str

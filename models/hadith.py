@@ -4,7 +4,7 @@ from database import Base
 from sqlalchemy.sql import func
 
 
-class UserInfo(Base):
+class Hadith(Base):
     __tablename__ = "hadith"
 
     id = Column(Integer, primary_key=True, index=True)

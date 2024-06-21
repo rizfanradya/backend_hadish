@@ -57,5 +57,14 @@ def create_refresh_token(subject: Union[str, Any], expires_delta=None):
     return encoded_jwt
 
 
-def dateTimeZone():
-    return datetime.utcnow().astimezone(pytz.timezone('Asia/Jakarta'))
+def format_datetime(date_time):
+    if date_time:
+        day_id = calendar.day_name[date_time.weekday()]
+        month_name = calendar.month_name[date_time.month]
+        am_pm = "AM" if date_time.hour < 12 else "PM"
+        hour = date_time.hour if date_time.hour <= 12 else date_time.hour - 12
+        formatted_date = f"{day_id}, {date_time.day} {month_name} {
+            date_time.year} {hour}:{date_time.strftime('%M')} {am_pm}"
+        return formatted_date
+    else:
+        return

@@ -9,8 +9,8 @@ import routers.typehadith as typehadith
 import routers.user as user
 
 app = FastAPI(
-    title="App Koperasi",
-    description="API Koperasi Documentations"
+    title="App Hadish",
+    description="API Hadish Documentations"
 )
 
 app.add_middleware(

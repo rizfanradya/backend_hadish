@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.post('/type_hadith')
-def create_new_type_hadith(type_hadith_info: CreateAndUpdateTypeHadith, session: Session = Depends(get_db)):
+def create_new_type_hadith(type_hadith_info: CreateAndUpdateTypeHadith, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     return CreateTypeHadith(session, type_hadith_info)
 
 

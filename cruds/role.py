@@ -1,3 +1,4 @@
+from numpy import info
 from sqlalchemy.orm import Session
 from schemas.role import CreateAndUpdateRole
 from fastapi import HTTPException
@@ -35,9 +36,9 @@ def GetAllRole(session: Session, limit: int, offset: int, search: Optional[str] 
 
     for role in all_role:
         role.created_by = get_user_by_id(
-            session, role.created_by, False, False).username  # type: ignore
+            session, role.created_by, False, False)
         role.updated_by = get_user_by_id(
-            session, role.updated_by, False, False).username  # type: ignore
+            session, role.updated_by, False, False)
         role.created_at = format_datetime(role.created_at)
         role.updated_at = format_datetime(role.updated_at)
 
@@ -59,9 +60,9 @@ def GetRoleById(session: Session, id: int, format: bool = True):
 
     if format:
         role_info.created_by = get_user_by_id(
-            session, role_info.created_by, False, False).username  # type: ignore
+            session, role_info.created_by, False, False)
         role_info.updated_by = get_user_by_id(
-            session, role_info.updated_by, False, False).username  # type: ignore
+            session, role_info.updated_by, False, False)
         role_info.created_at = format_datetime(role_info.created_at)
         role_info.updated_at = format_datetime(role_info.updated_at)
 
@@ -72,8 +73,9 @@ def UpdateRole(session: Session, id: int, info_update: CreateAndUpdateRole):
     role_info = GetRoleById(session, id, False)
 
     try:
+        info_update.role = info_update.role.upper()
         for attr, value in info_update.__dict__.items():
-            setattr(role_info, attr, value.upper())
+            setattr(role_info, attr, value)
 
         session.commit()
         session.refresh(role_info)

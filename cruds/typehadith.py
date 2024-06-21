@@ -29,9 +29,9 @@ def GetAllTypeHadith(session: Session, limit: int, offset: int, search: Optional
 
     for type_hadith in all_type_hadith:
         type_hadith.created_by = get_user_by_id(
-            session, type_hadith.created_by, False, False).username  # type: ignore
+            session, type_hadith.created_by, False, False)
         type_hadith.updated_by = get_user_by_id(
-            session, type_hadith.updated_by, False, False).username  # type: ignore
+            session, type_hadith.updated_by, False, False)
         type_hadith.created_at = format_datetime(type_hadith.created_at)
         type_hadith.updated_at = format_datetime(type_hadith.updated_at)
 
@@ -53,9 +53,9 @@ def GetTypeHadithById(session: Session, id: int, format: bool = True):
 
     if format:
         type_hadith_info.created_by = get_user_by_id(
-            session, type_hadith_info.created_by, False, False).username  # type: ignore
+            session, type_hadith_info.created_by, False, False)
         type_hadith_info.updated_by = get_user_by_id(
-            session, type_hadith_info.updated_by, False, False).username  # type: ignore
+            session, type_hadith_info.updated_by, False, False)
         type_hadith_info.created_at = format_datetime(
             type_hadith_info.created_at)
         type_hadith_info.updated_at = format_datetime(

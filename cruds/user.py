@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from schemas.user import CreateAndUpdateUser
-from cruds.role import GetRoleById
 from fastapi import HTTPException
 from password_validator import PasswordValidator
 import hashlib
@@ -9,7 +8,6 @@ from email_validator import validate_email, EmailNotValidError
 from utils import format_datetime, create_access_token, create_refresh_token
 from typing import Optional
 from sqlalchemy import or_
-from models.role import Role
 
 schema_password_validator = PasswordValidator()
 schema_password_validator.min(8).has().uppercase(
@@ -17,6 +15,8 @@ schema_password_validator.min(8).has().uppercase(
 
 
 def create_user(session: Session, user_info: CreateAndUpdateUser):
+    from cruds.role import GetRoleById
+
     GetRoleById(session, user_info.role, False)
 
     if user_info.password != user_info.confirm_password:
@@ -61,6 +61,8 @@ def create_user(session: Session, user_info: CreateAndUpdateUser):
 
 
 def get_all_user(session: Session, limit: int, offset: int, search: Optional[str] = None):
+    from models.role import Role
+
     all_user = session.query(UserInfo)
     role_info = session.query(Role).all()
     role_mapping = {role.id: role for role in role_info}
@@ -74,9 +76,9 @@ def get_all_user(session: Session, limit: int, offset: int, search: Optional[str
 
     for user in all_user:
         user.created_by = get_user_by_id(
-            session, user.created_by, False, False).username  # type: ignore
+            session, user.created_by, False, False)
         user.updated_by = get_user_by_id(
-            session, user.updated_by, False, False).username  # type: ignore
+            session, user.updated_by, False, False)
         user.status = "ACTIVE" if user.status else "NON ACTIVE"
         user.role = role_mapping.get(user.role).role if role_mapping.get(  # type: ignore
             user.role) else None
@@ -94,7 +96,7 @@ def get_all_user(session: Session, limit: int, offset: int, search: Optional[str
 
 def get_login(session: Session, user_login):
     user_info = session.query(UserInfo).where(
-        UserInfo.email == user_login.email).first()
+        UserInfo.email == user_login.username).first()
     if user_info is None:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -118,6 +120,8 @@ def get_login(session: Session, user_login):
 
 
 def get_user_by_id(session: Session, id: int, format: bool = True, error_handling: bool = True):
+    from models.role import Role
+
     user_info = session.query(UserInfo).get(id)
 
     if user_info is None:
@@ -129,9 +133,9 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
 
     if format:
         user_info.created_by = get_user_by_id(
-            session, user_info.created_by, False, False).username  # type: ignore
+            session, user_info.created_by, False, False)
         user_info.updated_by = get_user_by_id(
-            session, user_info.updated_by, False, False).username  # type: ignore
+            session, user_info.updated_by, False, False)
         user_info.role = session.query(Role).get(
             user_info.role).role if session.query(Role).get(user_info.role) else None
         user_info.status = "ACTIVE" if user_info.status else "NON ACTIVE"
@@ -142,7 +146,9 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
 
 
 def update_user(session: Session, id: int, info_update: CreateAndUpdateUser):
-    GetRoleById(session, info_update.role)
+    from cruds.role import GetRoleById
+
+    GetRoleById(session, info_update.role, False)
     user_info = get_user_by_id(session, id, False)
 
     if info_update.password != info_update.confirm_password:
@@ -168,6 +174,7 @@ def update_user(session: Session, id: int, info_update: CreateAndUpdateUser):
                 return user_info.__dict__
 
             except Exception as error:
+                print(error)
                 raise HTTPException(
                     status_code=404, detail=f'User "{info_update.username}" is already exist')
 

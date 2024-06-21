@@ -6,9 +6,11 @@ from utils import format_datetime
 from typing import Optional
 from sqlalchemy import or_
 from .user import get_user_by_id
+from .typehadith import GetTypeHadithById
 
 
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith):
+    GetTypeHadithById(session, hadith_info.type_hadith, False)
     new_hadith_info = Hadith(**hadith_info.dict())
     session.add(new_hadith_info)
     session.commit()
@@ -28,9 +30,9 @@ def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str
 
     for hadith in all_hadith:
         hadith.created_by = get_user_by_id(
-            session, hadith.created_by, False, False).username  # type: ignore
+            session, hadith.created_by, False, False)
         hadith.updated_by = get_user_by_id(
-            session, hadith.updated_by, False, False).username  # type: ignore
+            session, hadith.updated_by, False, False)
         hadith.created_at = format_datetime(hadith.created_at)
         hadith.updated_at = format_datetime(hadith.updated_at)
 
@@ -52,9 +54,9 @@ def GetHadithById(session: Session, id: int, format: bool = True):
 
     if format:
         hadith_info.created_by = get_user_by_id(
-            session, hadith_info.created_by, False, False).username  # type: ignore
+            session, hadith_info.created_by, False, False)
         hadith_info.updated_by = get_user_by_id(
-            session, hadith_info.updated_by, False, False).username  # type: ignore
+            session, hadith_info.updated_by, False, False)
         hadith_info.created_at = format_datetime(hadith_info.created_at)
         hadith_info.updated_at = format_datetime(hadith_info.updated_at)
 
@@ -62,6 +64,7 @@ def GetHadithById(session: Session, id: int, format: bool = True):
 
 
 def UpdateHadith(session: Session, id: int, info_update: CreateAndUpdateHadith):
+    GetTypeHadithById(session, info_update.type_hadith, False)
     hadith_info = GetHadithById(session, id, False)
     for attr, value in info_update.__dict__.items():
         setattr(hadith_info, attr, value)

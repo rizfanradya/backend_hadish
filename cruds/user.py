@@ -147,6 +147,33 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
     return user_info
 
 
+def GetUserByUsername(session: Session, username: str, format: bool = True, error_handling: bool = True):
+    from models.role import Role
+
+    user_info = session.query(UserInfo).where(
+        UserInfo.username == username).first()
+
+    if user_info is None:
+        if error_handling:
+            raise HTTPException(
+                status_code=404, detail=f"User {username} not found")
+        else:
+            return
+
+    if format:
+        user_info.created_by = get_user_by_id(
+            session, user_info.created_by, False, False)
+        user_info.updated_by = get_user_by_id(
+            session, user_info.updated_by, False, False)
+        user_info.role = session.query(Role).get(
+            user_info.role).role if session.query(Role).get(user_info.role) else None
+        user_info.status = "ACTIVE" if user_info.status else "NON ACTIVE"
+        user_info.created_at = format_datetime(user_info.created_at)
+        user_info.updated_at = format_datetime(user_info.updated_at)
+
+    return user_info
+
+
 def update_user(session: Session, id: int, info_update: UpdateUser):
     from cruds.role import GetRoleById
 

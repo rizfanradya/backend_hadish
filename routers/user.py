@@ -1,7 +1,7 @@
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from schemas.user import CreateAndUpdateUser
+from schemas.user import CreateUser, UpdateUser
 from database import get_db
 from typing import Optional
 from cruds.user import create_user, get_all_user, get_user_by_id, get_login, update_user, delete_user
@@ -11,7 +11,7 @@ router = APIRouter()
 
 
 @router.post('/user')
-def create_new_user(user_info: CreateAndUpdateUser, session: Session = Depends(get_db)):
+def create_new_user(user_info: CreateUser, session: Session = Depends(get_db)):
     return create_user(session, user_info)
 
 
@@ -30,8 +30,8 @@ def get_user_byid(id: int, session: Session = Depends(get_db), token: str = Depe
     return get_user_by_id(session, id)
 
 
-@router.put("/user/{id}", response_model=CreateAndUpdateUser)
-def update_user_info(id: int, info_update: CreateAndUpdateUser, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+@router.put("/user/{id}", response_model=UpdateUser)
+def update_user_info(id: int, info_update: UpdateUser, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     return update_user(session, id, info_update)
 
 

@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from schemas.user import CreateAndUpdateUser
+from schemas.user import CreateUser, UpdateUser
 from fastapi import HTTPException
 from password_validator import PasswordValidator
 import hashlib
@@ -14,10 +14,10 @@ schema_password_validator.min(8).has().uppercase(
 ).has().lowercase().has().digits().has().symbols()
 
 
-def create_user(session: Session, user_info: CreateAndUpdateUser):
-    from cruds.role import GetRoleById
+def create_user(session: Session, user_info: CreateUser):
+    from cruds.role import GetRoleByRole
 
-    GetRoleById(session, user_info.role, False)
+    role_info = GetRoleByRole(session, 'USER', False)
 
     if user_info.password != user_info.confirm_password:
         raise HTTPException(
@@ -38,6 +38,8 @@ def create_user(session: Session, user_info: CreateAndUpdateUser):
 
                 new_user_info = UserInfo(**user_data)
                 new_user_info.password = hash_password
+                new_user_info.role = role_info.id
+                new_user_info.status = True
 
                 session.add(new_user_info)
                 session.commit()
@@ -145,7 +147,7 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
     return user_info
 
 
-def update_user(session: Session, id: int, info_update: CreateAndUpdateUser):
+def update_user(session: Session, id: int, info_update: UpdateUser):
     from cruds.role import GetRoleById
 
     GetRoleById(session, info_update.role, False)

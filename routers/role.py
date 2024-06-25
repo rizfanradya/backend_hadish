@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from schemas.role import CreateAndUpdateRole
 from sqlalchemy.orm import Session
 from database import get_db
-from cruds.role import CreateRole, GetAllRole, GetRoleById, UpdateRole, DeleteRole
+from cruds.role import CreateRole, GetAllRole, GetRoleById, GetRoleByRole, UpdateRole, DeleteRole
 from typing import Optional
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/token")
@@ -23,6 +23,11 @@ def get_role(limit: int = 10, offset: int = 0, search: Optional[str] = None, ses
 @router.get("/role/{id}")
 def get_role_by_id(id: int, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     return GetRoleById(session, id)
+
+
+@router.get("/role/name/{role}")
+def get_role_by_role(role: str, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    return GetRoleByRole(session, role)
 
 
 @router.put("/role/{id}")

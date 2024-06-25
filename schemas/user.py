@@ -1,7 +1,18 @@
 from pydantic import BaseModel
 
 
-class CreateAndUpdateUser(BaseModel):
+class CreateUser(BaseModel):
+    created_by: int
+    updated_by: int
+    username: str
+    first_name: str
+    last_name: str
+    email: str
+    password: str
+    confirm_password: str
+
+
+class UpdateUser(BaseModel):
     created_by: int
     updated_by: int
     username: str

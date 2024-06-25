@@ -69,6 +69,24 @@ def GetRoleById(session: Session, id: int, format: bool = True):
     return role_info
 
 
+def GetRoleByRole(session: Session, role: str, format: bool = True):
+    role_info = session.query(Role).where(Role.role == role).first()
+
+    if role_info is None:
+        raise HTTPException(
+            status_code=404, detail=f"Role {role} not found")
+
+    if format:
+        role_info.created_by = get_user_by_id(
+            session, role_info.created_by, False, False)
+        role_info.updated_by = get_user_by_id(
+            session, role_info.updated_by, False, False)
+        role_info.created_at = format_datetime(role_info.created_at)
+        role_info.updated_at = format_datetime(role_info.updated_at)
+
+    return role_info
+
+
 def UpdateRole(session: Session, id: int, info_update: CreateAndUpdateRole):
     role_info = GetRoleById(session, id, False)
 

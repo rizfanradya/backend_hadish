@@ -31,7 +31,7 @@ def get_user_byid(id: int, session: Session = Depends(get_db), token: str = Depe
 
 
 @router.get("/user/username/{username}")
-def get_user_by_username(username: str, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+def get_user_by_username(username: str, session: Session = Depends(get_db)):
     return GetUserByUsername(session, username)
 
 

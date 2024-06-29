@@ -77,6 +77,7 @@ def get_all_user(session: Session, limit: int, offset: int, search: Optional[str
     all_user = all_user.offset(offset).limit(limit).all()  # type: ignore
 
     for user in all_user:
+        user.password = ''
         user.created_by = get_user_by_id(
             session, user.created_by, False, False)
         user.updated_by = get_user_by_id(
@@ -134,6 +135,7 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
             return
 
     if format:
+        user_info.password = ''
         user_info.created_by = get_user_by_id(
             session, user_info.created_by, False, False)
         user_info.updated_by = get_user_by_id(
@@ -161,6 +163,7 @@ def GetUserByUsername(session: Session, username: str, format: bool = True, erro
             return
 
     if format:
+        user_info.password = ''
         user_info.created_by = get_user_by_id(
             session, user_info.created_by, False, False)
         user_info.updated_by = get_user_by_id(

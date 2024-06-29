@@ -82,8 +82,8 @@ def get_all_user(session: Session, limit: int, offset: int, search: Optional[str
             session, user.created_by, False, False)
         user.updated_by = get_user_by_id(
             session, user.updated_by, False, False)
-        user.status = "ACTIVE" if user.status else "NON ACTIVE"
-        user.role = role_mapping.get(user.role).role if role_mapping.get(  # type: ignore
+        user.status_name = "ACTIVE" if user.status else "INACTIVE"
+        user.role_name = role_mapping.get(user.role).role if role_mapping.get(  # type: ignore
             user.role) else None
         user.created_at = format_datetime(user.created_at)
         user.updated_at = format_datetime(user.updated_at)
@@ -140,9 +140,9 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
             session, user_info.created_by, False, False)
         user_info.updated_by = get_user_by_id(
             session, user_info.updated_by, False, False)
-        user_info.role = session.query(Role).get(
+        user_info.role_name = session.query(Role).get(
             user_info.role).role if session.query(Role).get(user_info.role) else None
-        user_info.status = "ACTIVE" if user_info.status else "NON ACTIVE"
+        user_info.status_name = "ACTIVE" if user_info.status else "INACTIVE"
         user_info.created_at = format_datetime(user_info.created_at)
         user_info.updated_at = format_datetime(user_info.updated_at)
 
@@ -164,13 +164,14 @@ def GetUserByUsername(session: Session, username: str, format: bool = True, erro
 
     if format:
         user_info.password = ''
+        user_info.role_id = user_info.role
         user_info.created_by = get_user_by_id(
             session, user_info.created_by, False, False)
         user_info.updated_by = get_user_by_id(
             session, user_info.updated_by, False, False)
-        user_info.role = session.query(Role).get(
+        user_info.role_name = session.query(Role).get(
             user_info.role).role if session.query(Role).get(user_info.role) else None
-        user_info.status = "ACTIVE" if user_info.status else "NON ACTIVE"
+        user_info.status_name = "ACTIVE" if user_info.status else "INACTIVE"
         user_info.created_at = format_datetime(user_info.created_at)
         user_info.updated_at = format_datetime(user_info.updated_at)
 

@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from schemas.hadith import CreateAndUpdateHadith
 from fastapi import HTTPException
 from models.hadith import Hadith
+from models.typehadith import TypeHadith
 from utils import format_datetime
 from typing import Optional
 from sqlalchemy import or_
@@ -20,6 +21,9 @@ def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith):
 
 def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str] = None):
     all_hadith = session.query(Hadith)
+    type_hadith_info = session.query(TypeHadith).all()
+    type_hadith_mapping = {
+        type_hadith.id: type_hadith for type_hadith in type_hadith_info}
 
     if search:
         all_hadith = all_hadith.filter(or_(*[getattr(Hadith, column).ilike(
@@ -29,6 +33,8 @@ def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str
     all_hadith = all_hadith.offset(offset).limit(limit).all()  # type: ignore
 
     for hadith in all_hadith:
+        hadith.type_hadith_name = type_hadith_mapping.get(hadith.type_hadith).type if type_hadith_mapping.get(  # type: ignore
+            hadith.type_hadith) else None
         hadith.created_by = get_user_by_id(
             session, hadith.created_by, False, False)
         hadith.updated_by = get_user_by_id(
@@ -53,8 +59,10 @@ def GetHadithById(session: Session, id: int, format: bool = True):
             status_code=404, detail=f"Hadith id {id} not found")
 
     if format:
-        hadith_info.created_by = get_user_by_id(
-            session, hadith_info.created_by, False, False)
+        hadith_info.type_hadith_name = GetTypeHadithById(
+            session, hadith_info.type_hadith, False, False)
+        hadith_info.created_by = session.query(TypeHadith).get(
+            hadith_info.type_hadith).type if session.query(TypeHadith).get(hadith_info.type_hadith) else None
         hadith_info.updated_by = get_user_by_id(
             session, hadith_info.updated_by, False, False)
         hadith_info.created_at = format_datetime(hadith_info.created_at)

@@ -44,12 +44,15 @@ def GetAllTypeHadith(session: Session, limit: int, offset: int, search: Optional
     }
 
 
-def GetTypeHadithById(session: Session, id: int, format: bool = True):
+def GetTypeHadithById(session: Session, id: int, format: bool = True, error_handling: bool = True):
     type_hadith_info = session.query(TypeHadith).get(id)
 
     if type_hadith_info is None:
-        raise HTTPException(
-            status_code=404, detail=f"Type Hadith id {id} not found")
+        if error_handling:
+            raise HTTPException(
+                status_code=404, detail=f"Type Hadith id {id} not found")
+        else:
+            return
 
     if format:
         type_hadith_info.created_by = get_user_by_id(

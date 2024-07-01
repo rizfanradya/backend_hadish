@@ -38,7 +38,7 @@ def create_user(session: Session, user_info: CreateUser):
 
                 new_user_info = UserInfo(**user_data)
                 new_user_info.password = hash_password
-                new_user_info.role = role_info.id
+                new_user_info.role = new_user_info.role if new_user_info.role else role_info.id
                 new_user_info.status = True
 
                 session.add(new_user_info)
@@ -78,10 +78,10 @@ def get_all_user(session: Session, limit: int, offset: int, search: Optional[str
 
     for user in all_user:
         user.password = ''
-        user.created_by = get_user_by_id(
-            session, user.created_by, False, False)
-        user.updated_by = get_user_by_id(
-            session, user.updated_by, False, False)
+        user.created_by = session.query(UserInfo).get(
+            user.created_by).username if session.query(UserInfo).get(user.created_by) else None
+        user.updated_by = session.query(UserInfo).get(
+            user.updated_by).username if session.query(UserInfo).get(user.updated_by) else None
         user.status_name = "ACTIVE" if user.status else "INACTIVE"
         user.role_name = role_mapping.get(user.role).role if role_mapping.get(  # type: ignore
             user.role) else None
@@ -99,7 +99,7 @@ def get_all_user(session: Session, limit: int, offset: int, search: Optional[str
 
 def get_login(session: Session, user_login):
     user_info = session.query(UserInfo).where(
-        UserInfo.email == user_login.username).first()
+        UserInfo.username == user_login.username).first()
     if user_info is None:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -118,7 +118,7 @@ def get_login(session: Session, user_login):
             "access_token": "",
             "refresh_token": "",
             "status": False,
-            "detail": "Email or Password incorrect"
+            "detail": "Username or Password incorrect"
         }
 
 
@@ -136,10 +136,10 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
 
     if format:
         user_info.password = ''
-        user_info.created_by = get_user_by_id(
-            session, user_info.created_by, False, False)
-        user_info.updated_by = get_user_by_id(
-            session, user_info.updated_by, False, False)
+        user_info.created_by = session.query(UserInfo).get(
+            user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None
+        user_info.updated_by = session.query(UserInfo).get(
+            user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None
         user_info.role_name = session.query(Role).get(
             user_info.role).role if session.query(Role).get(user_info.role) else None
         user_info.status_name = "ACTIVE" if user_info.status else "INACTIVE"
@@ -165,10 +165,10 @@ def GetUserByUsername(session: Session, username: str, format: bool = True, erro
     if format:
         user_info.password = ''
         user_info.role_id = user_info.role
-        user_info.created_by = get_user_by_id(
-            session, user_info.created_by, False, False)
-        user_info.updated_by = get_user_by_id(
-            session, user_info.updated_by, False, False)
+        user_info.created_by = session.query(UserInfo).get(
+            user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None
+        user_info.updated_by = session.query(UserInfo).get(
+            user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None
         user_info.role_name = session.query(Role).get(
             user_info.role).role if session.query(Role).get(user_info.role) else None
         user_info.status_name = "ACTIVE" if user_info.status else "INACTIVE"

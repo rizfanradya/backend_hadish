@@ -5,7 +5,7 @@ from models.typehadith import TypeHadith
 from utils import format_datetime
 from typing import Optional
 from sqlalchemy import or_
-from .user import get_user_by_id
+from models.user import UserInfo
 
 
 def CreateTypeHadith(session: Session, type_hadith_info: CreateAndUpdateTypeHadith):
@@ -28,10 +28,10 @@ def GetAllTypeHadith(session: Session, limit: int, offset: int, search: Optional
         offset).limit(limit).all()  # type: ignore
 
     for type_hadith in all_type_hadith:
-        type_hadith.created_by = get_user_by_id(
-            session, type_hadith.created_by, False, False)
-        type_hadith.updated_by = get_user_by_id(
-            session, type_hadith.updated_by, False, False)
+        type_hadith.created_by = session.query(UserInfo).get(
+            type_hadith.created_by).username if session.query(UserInfo).get(type_hadith.created_by) else None
+        type_hadith.updated_by = session.query(UserInfo).get(
+            type_hadith.updated_by).username if session.query(UserInfo).get(type_hadith.updated_by) else None
         type_hadith.created_at = format_datetime(type_hadith.created_at)
         type_hadith.updated_at = format_datetime(type_hadith.updated_at)
 
@@ -55,10 +55,10 @@ def GetTypeHadithById(session: Session, id: int, format: bool = True, error_hand
             return
 
     if format:
-        type_hadith_info.created_by = get_user_by_id(
-            session, type_hadith_info.created_by, False, False)
-        type_hadith_info.updated_by = get_user_by_id(
-            session, type_hadith_info.updated_by, False, False)
+        type_hadith_info.created_by = session.query(UserInfo).get(
+            type_hadith_info.created_by).username if session.query(UserInfo).get(type_hadith_info.created_by) else None
+        type_hadith_info.updated_by = session.query(UserInfo).get(
+            type_hadith_info.updated_by).username if session.query(UserInfo).get(type_hadith_info.updated_by) else None
         type_hadith_info.created_at = format_datetime(
             type_hadith_info.created_at)
         type_hadith_info.updated_at = format_datetime(

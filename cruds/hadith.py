@@ -6,13 +6,13 @@ from models.typehadith import TypeHadith
 from utils import format_datetime
 from typing import Optional
 from sqlalchemy import or_
-from .user import get_user_by_id
 from .typehadith import GetTypeHadithById
 from models.user import UserInfo
 
 
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith):
-    GetTypeHadithById(session, hadith_info.type_hadith, False)
+    if hadith_info.type_hadith:
+        GetTypeHadithById(session, hadith_info.type_hadith, False)
     new_hadith_info = Hadith(**hadith_info.dict())
     session.add(new_hadith_info)
     session.commit()
@@ -73,7 +73,8 @@ def GetHadithById(session: Session, id: int, format: bool = True):
 
 
 def UpdateHadith(session: Session, id: int, info_update: CreateAndUpdateHadith):
-    GetTypeHadithById(session, info_update.type_hadith, False)
+    if info_update.type_hadith:
+        GetTypeHadithById(session, info_update.type_hadith, False)
     hadith_info = GetHadithById(session, id, False)
     for attr, value in info_update.__dict__.items():
         setattr(hadith_info, attr, value)

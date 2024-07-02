@@ -5,9 +5,10 @@ from password_validator import PasswordValidator
 import hashlib
 from models.user import UserInfo
 from email_validator import validate_email, EmailNotValidError
-from utils import format_datetime, create_access_token, create_refresh_token
+from utils import format_datetime, create_access_token, create_refresh_token, ALGORITHM, JWT_SECRET_KEY
 from typing import Optional
 from sqlalchemy import or_
+import jwt
 
 schema_password_validator = PasswordValidator()
 schema_password_validator.min(8).has().uppercase(
@@ -226,3 +227,21 @@ def delete_user(session: Session, id: int):
     session.delete(user_info)
     session.commit()
     return f"User id {id} deleted success"
+
+
+def TokenAuthorization(session: Session, token: str):
+    if JWT_SECRET_KEY is None:
+        raise EnvironmentError(f"Environment variable JWT_SECRET_KEY not set")
+
+    try:
+        decode_token = jwt.decode(
+            token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        user_info = session.query(UserInfo).get(decode_token.get('id'))
+
+        if user_info is None:
+            raise HTTPException(status_code=401, detail='User Not Found')
+
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail='Token has expired')
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail='Token is Invalid')

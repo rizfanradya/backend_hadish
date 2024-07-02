@@ -36,9 +36,9 @@ def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str
     for hadith in all_hadith:
         hadith.type_hadith_name = type_hadith_mapping.get(hadith.type_hadith).type if type_hadith_mapping.get(  # type: ignore
             hadith.type_hadith) else None
-        hadith.created_by = session.query(UserInfo).get(
+        hadith.created_by_name = session.query(UserInfo).get(
             hadith.created_by).username if session.query(UserInfo).get(hadith.created_by) else None
-        hadith.updated_by = session.query(UserInfo).get(
+        hadith.updated_by_name = session.query(UserInfo).get(
             hadith.updated_by).username if session.query(UserInfo).get(hadith.updated_by) else None
         hadith.created_at = format_datetime(hadith.created_at)
         hadith.updated_at = format_datetime(hadith.updated_at)
@@ -62,9 +62,9 @@ def GetHadithById(session: Session, id: int, format: bool = True):
     if format:
         hadith_info.type_hadith_name = GetTypeHadithById(
             session, hadith_info.type_hadith, False, False)
-        hadith_info.created_by = session.query(UserInfo).get(
+        hadith_info.created_by_name = session.query(UserInfo).get(
             hadith_info.created_by).username if session.query(UserInfo).get(hadith_info.created_by) else None
-        hadith_info.updated_by = session.query(UserInfo).get(
+        hadith_info.updated_by_name = session.query(UserInfo).get(
             hadith_info.updated_by).username if session.query(UserInfo).get(hadith_info.updated_by) else None
         hadith_info.created_at = format_datetime(hadith_info.created_at)
         hadith_info.updated_at = format_datetime(hadith_info.updated_at)

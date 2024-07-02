@@ -78,9 +78,9 @@ def get_all_user(session: Session, limit: int, offset: int, search: Optional[str
 
     for user in all_user:
         user.password = ''
-        user.created_by = session.query(UserInfo).get(
+        user.created_by_name = session.query(UserInfo).get(
             user.created_by).username if session.query(UserInfo).get(user.created_by) else None
-        user.updated_by = session.query(UserInfo).get(
+        user.updated_by_name = session.query(UserInfo).get(
             user.updated_by).username if session.query(UserInfo).get(user.updated_by) else None
         user.status_name = "ACTIVE" if user.status else "INACTIVE"
         user.role_name = role_mapping.get(user.role).role if role_mapping.get(  # type: ignore
@@ -136,9 +136,9 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
 
     if format:
         user_info.password = ''
-        user_info.created_by = session.query(UserInfo).get(
+        user_info.created_by_name = session.query(UserInfo).get(
             user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None
-        user_info.updated_by = session.query(UserInfo).get(
+        user_info.updated_by_name = session.query(UserInfo).get(
             user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None
         user_info.role_name = session.query(Role).get(
             user_info.role).role if session.query(Role).get(user_info.role) else None
@@ -165,9 +165,9 @@ def GetUserByUsername(session: Session, username: str, format: bool = True, erro
     if format:
         user_info.password = ''
         user_info.role_id = user_info.role
-        user_info.created_by = session.query(UserInfo).get(
+        user_info.created_by_name = session.query(UserInfo).get(
             user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None
-        user_info.updated_by = session.query(UserInfo).get(
+        user_info.updated_by_name = session.query(UserInfo).get(
             user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None
         user_info.role_name = session.query(Role).get(
             user_info.role).role if session.query(Role).get(user_info.role) else None

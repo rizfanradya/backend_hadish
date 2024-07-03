@@ -1,5 +1,4 @@
 from pydantic import BaseModel
-from typing import Optional
 
 
 class CreateAndUpdateHadith(BaseModel):
@@ -7,4 +6,3 @@ class CreateAndUpdateHadith(BaseModel):
     updated_by: int
     hadith: str
     explanation: str
-    type_hadith: Optional[int]

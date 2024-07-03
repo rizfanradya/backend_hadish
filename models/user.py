@@ -2,6 +2,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import String, Boolean, Integer, DateTime
 from database import Base
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 
 class UserInfo(Base):
@@ -19,3 +20,4 @@ class UserInfo(Base):
     password = Column(String(length=300), nullable=False)
     status = Column(Boolean)
     role = Column(Integer, nullable=False)
+    evaluations = relationship("HadithAssesment", back_populates="user_id")

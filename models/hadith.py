@@ -2,6 +2,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.types import String, Integer, DateTime
 from database import Base
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 
 class Hadith(Base):
@@ -14,4 +15,4 @@ class Hadith(Base):
     updated_by = Column(Integer)
     hadith = Column(String(length=255))
     explanation = Column(String(length=255))
-    type_hadith = (Column(Integer))
+    evaluations = relationship("HadithAssesment", back_populates="hadith_id")

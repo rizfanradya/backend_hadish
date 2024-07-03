@@ -73,7 +73,7 @@ def GetRoleByRole(session: Session, role: str, format: bool = True):
 
     if role_info is None:
         raise HTTPException(
-            status_code=404, detail=f"Role {role} not found")
+            status_code=404, detail=f"Role '{role}' not found")
 
     if format:
         role_info.created_by_name = session.query(UserInfo).get(

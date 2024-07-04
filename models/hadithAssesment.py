@@ -17,6 +17,6 @@ class HadithAssesment(Base):
     user_id = Column(Integer, ForeignKey("user.id"))
     user = relationship("UserInfo", back_populates="evaluations")
     hadith_id = Column(Integer, ForeignKey("hadith.id"))
-    hadith = relationship("hadith", back_populates="evaluations")
+    hadith = relationship("Hadith", back_populates="evaluations")
     evaluation_id = Column(Integer, ForeignKey("type_hadith.id"))
-    evaluation = relationship("type_hadith", back_populates="evaluation")
+    evaluation = relationship("TypeHadith", back_populates="evaluation")

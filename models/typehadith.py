@@ -14,5 +14,4 @@ class TypeHadith(Base):
     created_by = Column(Integer)
     updated_by = Column(Integer)
     type = Column(String(length=255), unique=True, nullable=False)
-    evaluation = relationship(
-        "HadithAssesment", back_populates="evaluation_id")
+    evaluation = relationship("HadithAssesment", back_populates="evaluation")

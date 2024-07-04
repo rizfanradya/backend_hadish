@@ -20,4 +20,4 @@ class UserInfo(Base):
     password = Column(String(length=300), nullable=False)
     status = Column(Boolean)
     role = Column(Integer, nullable=False)
-    evaluations = relationship("HadithAssesment", back_populates="user_id")
+    evaluations = relationship("HadithAssesment", back_populates="user")

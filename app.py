@@ -7,6 +7,7 @@ import routers.hadith as hadith
 import routers.role as role
 import routers.typehadith as typehadith
 import routers.user as user
+import routers.hadith_assesment as hadith_assesment
 
 app = FastAPI(
     title="App Hadish",
@@ -23,6 +24,8 @@ app.add_middleware(
 
 app.include_router(user.router, tags=["User API"], prefix="/api")
 app.include_router(hadith.router, tags=["Hadith API"], prefix="/api")
+app.include_router(hadith_assesment.router, tags=[
+                   "Hadith Assesment API"], prefix="/api")
 app.include_router(typehadith.router, tags=["Type Hadith API"], prefix="/api")
 app.include_router(role.router, tags=["Role API"], prefix="/api")
 

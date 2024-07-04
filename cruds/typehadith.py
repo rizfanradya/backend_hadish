@@ -9,11 +9,15 @@ from models.user import UserInfo
 
 
 def CreateTypeHadith(session: Session, type_hadith_info: CreateAndUpdateTypeHadith):
-    new_type_hadith_info = TypeHadith(**type_hadith_info.dict())
-    session.add(new_type_hadith_info)
-    session.commit()
-    session.refresh(new_type_hadith_info)
-    return new_type_hadith_info
+    try:
+        new_type_hadith_info = TypeHadith(**type_hadith_info.dict())
+        session.add(new_type_hadith_info)
+        session.commit()
+        session.refresh(new_type_hadith_info)
+        return new_type_hadith_info
+    except Exception as error:
+        raise HTTPException(
+            status_code=404, detail=f'Type hadish "{type_hadith_info.type}" is already exist')
 
 
 def GetAllTypeHadith(session: Session, limit: int, offset: int, search: Optional[str] = None):

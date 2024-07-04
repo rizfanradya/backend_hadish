@@ -15,4 +15,4 @@ class Hadith(Base):
     updated_by = Column(Integer)
     hadith = Column(String(length=255))
     explanation = Column(String(length=255))
-    evaluations = relationship("HadithAssesment", back_populates="hadith_id")
+    evaluations = relationship("HadithAssesment", back_populates="hadith")

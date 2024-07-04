@@ -70,6 +70,30 @@ def GetHadithAssesmentById(session: Session, id: int, format: bool = True, error
     return hadith_assesment_info
 
 
+def GetHadithAssesmentByHadith(session: Session, hadith: str, format: bool = True, error_handling: bool = True):
+    hadith_assesment_info = session.query(
+        HadithAssesment).where(HadithAssesment.hadith == hadith).first()
+
+    if hadith_assesment_info is None:
+        if error_handling:
+            raise HTTPException(
+                status_code=404, detail=f"Hadith assesment '{hadith}' not found")
+        else:
+            return
+
+    if format:
+        hadith_assesment_info.created_by_name = session.query(UserInfo).get(
+            hadith_assesment_info.created_by).username if session.query(UserInfo).get(hadith_assesment_info.created_by) else None
+        hadith_assesment_info.updated_by_name = session.query(UserInfo).get(
+            hadith_assesment_info.updated_by).username if session.query(UserInfo).get(hadith_assesment_info.updated_by) else None
+        hadith_assesment_info.created_at = format_datetime(
+            hadith_assesment_info.created_at)
+        hadith_assesment_info.updated_at = format_datetime(
+            hadith_assesment_info.updated_at)
+
+    return hadith_assesment_info
+
+
 def UpdateHadithAssesmentInfo(session: Session, id: int, info_update: UpdateHadithAssesment):
     hadith_assesment_info = GetHadithAssesmentById(session, id, False)
     for attr, value in info_update.__dict__.items():

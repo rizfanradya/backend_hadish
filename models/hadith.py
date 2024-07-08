@@ -1,5 +1,5 @@
 from sqlalchemy.schema import Column
-from sqlalchemy.types import String, Integer, DateTime
+from sqlalchemy.types import Integer, DateTime, String, Text
 from database import Base
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
@@ -13,6 +13,7 @@ class Hadith(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     created_by = Column(Integer)
     updated_by = Column(Integer)
-    hadith = Column(String(length=255))
-    explanation = Column(String(length=255))
+    hadith_arab = Column(Text)
+    hadith_melayu = Column(Text)
+    explanation = Column(Text)
     evaluations = relationship("HadithAssesment", back_populates="hadith")

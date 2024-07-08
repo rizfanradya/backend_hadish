@@ -5,8 +5,9 @@ from models.hadith import Hadith
 from utils import format_datetime
 from typing import Optional
 from sqlalchemy import or_
-from .typehadith import GetTypeHadithById
 from models.user import UserInfo
+from fastapi import File, UploadFile
+import pandas as pd
 
 
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith):
@@ -15,6 +16,36 @@ def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith):
     session.commit()
     session.refresh(new_hadith_info)
     return new_hadith_info
+
+
+async def UploadFileHadith(session: Session, file: UploadFile = File(...)):
+    if not file.filename.endswith('.xlsx'):  # type: ignore
+        raise HTTPException(
+            status_code=404, detail="Invalid file format. Only .xlsx files are allowed.")
+
+    try:
+        df = pd.read_excel(file.file)
+    except Exception as error:
+        raise HTTPException(
+            status_code=404, detail="Could not read the Excel file.")
+
+    try:
+        df = df.fillna('')
+        hadith_entries = []
+        for _, row in df.iterrows():
+            hadith_entry = Hadith(
+                hadith_arab=row['hadish_arab'],
+                hadith_melayu=row['hadish_melayu'],
+                explanation=row['keterangan'],
+            )  # type: ignore
+            hadith_entries.append(hadith_entry)
+
+        session.bulk_save_objects(hadith_entries)
+        session.commit()
+    except Exception as error:
+        raise HTTPException(status_code=404, detail='Invalid Excel format')
+
+    return hadith_entries
 
 
 def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str] = None):

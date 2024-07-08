@@ -4,8 +4,9 @@ from sqlalchemy.orm import Session
 from schemas.hadith import CreateAndUpdateHadith
 from database import get_db
 from typing import Optional
-from cruds.hadith import CreateHadith, GetAllHadith, GetHadithById, UpdateHadith, DeleteHadith
+from cruds.hadith import CreateHadith, GetAllHadith, GetHadithById, UpdateHadith, DeleteHadith, UploadFileHadith
 from cruds.user import TokenAuthorization
+from fastapi import File, UploadFile
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/token")
 router = APIRouter()
@@ -15,6 +16,12 @@ router = APIRouter()
 def create_new_hadith(hadith_info: CreateAndUpdateHadith, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     TokenAuthorization(session, token)
     return CreateHadith(session, hadith_info)
+
+
+@router.post('/hadith/upload')
+async def upload_data_hadith(file: UploadFile = File(...), session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    TokenAuthorization(session, token)
+    return await UploadFileHadith(session, file)
 
 
 @router.get('/hadith')

@@ -13,3 +13,4 @@ email-validator
 password-validator
 pytz
 phonenumbers
+openpyxl

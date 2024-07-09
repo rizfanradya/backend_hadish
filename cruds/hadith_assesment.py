@@ -9,6 +9,14 @@ from fastapi import HTTPException
 
 
 def CreateHadithAssesmentInfo(session: Session, hadith_assesment_info: CreateHadithAssesment, token_info):
+    hadith_assesment = session.query(HadithAssesment).where(
+        HadithAssesment.user_id == token_info.id, HadithAssesment.hadith_id == hadith_assesment_info.hadith_id).first()
+
+    if hadith_assesment:
+        raise HTTPException(
+            status_code=404, detail=f'The user assessment with ID "{token_info.id}" of the hadith with ID "{hadith_assesment_info.hadith_id}" is already exists'
+        )
+
     try:
         new_hadith_assesment = HadithAssesment(**hadith_assesment_info.dict())
         new_hadith_assesment.created_by = token_info.id

@@ -86,11 +86,13 @@ def GetRoleByRole(session: Session, role: str, format: bool = True):
     return role_info
 
 
-def UpdateRole(session: Session, id: int, info_update: CreateAndUpdateRole):
+def UpdateRole(session: Session, id: int, info_update: CreateAndUpdateRole, token_info):
     role_info = GetRoleById(session, id, False)
 
     try:
         info_update.role = info_update.role.upper()
+        role_info.updated_by = token_info.id
+
         for attr, value in info_update.__dict__.items():
             setattr(role_info, attr, value)
 

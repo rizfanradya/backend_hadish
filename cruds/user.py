@@ -179,7 +179,7 @@ def GetUserByUsername(session: Session, username: str, format: bool = True, erro
     return user_info
 
 
-def update_user(session: Session, id: int, info_update: UpdateUser):
+def update_user(session: Session, id: int, info_update: UpdateUser, token_info):
     from cruds.role import GetRoleById
 
     GetRoleById(session, info_update.role, False)
@@ -200,6 +200,7 @@ def update_user(session: Session, id: int, info_update: UpdateUser):
             try:
                 info_update.password = hashlib.md5(
                     info_update.password.encode()).hexdigest()
+                user_info.updated_by = token_info.id  # type: ignore
                 for attr, value in info_update.__dict__.items():
                     setattr(user_info, attr, value)
 
@@ -208,9 +209,7 @@ def update_user(session: Session, id: int, info_update: UpdateUser):
                 return user_info.__dict__
 
             except Exception as error:
-                print(error)
-                raise HTTPException(
-                    status_code=404, detail=f'User "{info_update.username}" is already exist')
+                raise HTTPException(status_code=404, detail=f'{error}')
 
         except EmailNotValidError as error:
             raise HTTPException(status_code=404, detail="Email not valid")
@@ -236,13 +235,13 @@ def TokenAuthorization(session: Session, token: str):
     try:
         decode_token = jwt.decode(
             token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-        user_info = session.query(UserInfo).get(decode_token.get('id'))
 
+        user_info = session.query(UserInfo).get(decode_token.get('id'))
         if user_info is None:
             raise HTTPException(status_code=401, detail='User Not Found')
+        return user_info
 
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail='Token has expired')
-
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail='Token is Invalid')

@@ -8,9 +8,11 @@ from sqlalchemy import or_
 from models.user import UserInfo
 
 
-def CreateTypeHadith(session: Session, type_hadith_info: CreateAndUpdateTypeHadith):
+def CreateTypeHadith(session: Session, type_hadith_info: CreateAndUpdateTypeHadith, token_info):
     try:
         new_type_hadith_info = TypeHadith(**type_hadith_info.dict())
+        new_type_hadith_info.created_by = token_info.id
+
         session.add(new_type_hadith_info)
         session.commit()
         session.refresh(new_type_hadith_info)
@@ -71,8 +73,10 @@ def GetTypeHadithById(session: Session, id: int, format: bool = True, error_hand
     return type_hadith_info
 
 
-def UpdateTypeHadith(session: Session, id: int, info_update: CreateAndUpdateTypeHadith):
+def UpdateTypeHadith(session: Session, id: int, info_update: CreateAndUpdateTypeHadith, token_info):
     type_hadith_info = GetTypeHadithById(session, id, False)
+    type_hadith_info.updated_by = token_info.id  # type: ignore
+
     for attr, value in info_update.__dict__.items():
         setattr(type_hadith_info, attr, value)
     session.commit()

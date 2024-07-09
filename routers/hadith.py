@@ -14,8 +14,8 @@ router = APIRouter()
 
 @router.post('/hadith')
 def create_new_hadith(hadith_info: CreateAndUpdateHadith, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    TokenAuthorization(session, token)
-    return CreateHadith(session, hadith_info)
+    token_info = TokenAuthorization(session, token)
+    return CreateHadith(session, hadith_info, token_info)
 
 
 @router.post('/hadith/upload')
@@ -38,8 +38,8 @@ def get_hadith_by_id(id: int, session: Session = Depends(get_db), token: str = D
 
 @router.put("/hadith/{id}", response_model=CreateAndUpdateHadith)
 def update_hadith(id: int, info_update: CreateAndUpdateHadith, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    TokenAuthorization(session, token)
-    return UpdateHadith(session, id, info_update)
+    token_info = TokenAuthorization(session, token)
+    return UpdateHadith(session, id, info_update, token_info)
 
 
 @router.delete("/hadith/{id}")

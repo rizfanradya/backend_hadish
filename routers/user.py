@@ -39,8 +39,8 @@ def get_user_by_username(username: str, session: Session = Depends(get_db)):
 
 @router.put("/user/{id}", response_model=UpdateUser)
 def update_user_info(id: int, info_update: UpdateUser, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    TokenAuthorization(session, token)
-    return update_user(session, id, info_update)
+    token_info = TokenAuthorization(session, token)
+    return update_user(session, id, info_update, token_info)
 
 
 @router.delete("/user/{id}")

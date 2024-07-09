@@ -36,8 +36,8 @@ def get_role_by_role(role: str, session: Session = Depends(get_db), token: str =
 
 @router.put("/role/{id}")
 def update_role_info(id: int, info_update: CreateAndUpdateRole, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    TokenAuthorization(session, token)
-    return UpdateRole(session, id, info_update)
+    token_info = TokenAuthorization(session, token)
+    return UpdateRole(session, id, info_update, token_info)
 
 
 @router.delete("/role/{id}")

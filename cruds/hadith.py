@@ -10,8 +10,10 @@ from fastapi import File, UploadFile
 import pandas as pd
 
 
-def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith):
+def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_info):
     new_hadith_info = Hadith(**hadith_info.dict())
+    new_hadith_info.created_by = token_info.id
+
     session.add(new_hadith_info)
     session.commit()
     session.refresh(new_hadith_info)
@@ -93,8 +95,10 @@ def GetHadithById(session: Session, id: int, format: bool = True):
     return hadith_info
 
 
-def UpdateHadith(session: Session, id: int, info_update: CreateAndUpdateHadith):
+def UpdateHadith(session: Session, id: int, info_update: CreateAndUpdateHadith, token_info):
     hadith_info = GetHadithById(session, id, False)
+
+    hadith_info.updated_by = token_info.id
     for attr, value in info_update.__dict__.items():
         setattr(hadith_info, attr, value)
     session.commit()

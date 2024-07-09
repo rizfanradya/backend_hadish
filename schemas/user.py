@@ -4,7 +4,6 @@ from typing import Optional
 
 class CreateUser(BaseModel):
     created_by: int
-    updated_by: int
     username: str
     first_name: str
     last_name: str
@@ -15,8 +14,6 @@ class CreateUser(BaseModel):
 
 
 class UpdateUser(BaseModel):
-    created_by: int
-    updated_by: int
     first_name: str
     last_name: str
     email: str

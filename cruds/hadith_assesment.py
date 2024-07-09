@@ -8,9 +8,12 @@ from utils import format_datetime
 from fastapi import HTTPException
 
 
-def CreateHadithAssesmentInfo(session: Session, hadith_assesment_info: CreateHadithAssesment):
+def CreateHadithAssesmentInfo(session: Session, hadith_assesment_info: CreateHadithAssesment, token_info):
     try:
         new_hadith_assesment = HadithAssesment(**hadith_assesment_info.dict())
+        new_hadith_assesment.created_by = token_info.id
+        new_hadith_assesment.user_id = token_info.id
+
         session.add(new_hadith_assesment)
         session.commit()
         session.refresh(new_hadith_assesment)
@@ -122,10 +125,11 @@ def GetHadithAssesmentByUser(session: Session, user_id: int, error_handling: boo
     return hadith_assesment_info
 
 
-def UpdateHadithAssesmentInfo(session: Session, id: int, info_update: UpdateHadithAssesment):
+def UpdateHadithAssesmentInfo(session: Session, id: int, info_update: UpdateHadithAssesment, token_info):
     hadith_assesment_info = GetHadithAssesmentById(session, id, False)
 
     try:
+        hadith_assesment_info.updated_by = token_info.id  # type: ignore
         for attr, value in info_update.__dict__.items():
             setattr(hadith_assesment_info, attr, value)
         session.commit()

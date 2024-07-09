@@ -13,8 +13,8 @@ router = APIRouter()
 
 @router.post('/hadith_assesment')
 def create_new_hadith_assesment(hadith_assesment_info: CreateHadithAssesment, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    TokenAuthorization(session, token)
-    return CreateHadithAssesmentInfo(session, hadith_assesment_info)
+    token_info = TokenAuthorization(session, token)
+    return CreateHadithAssesmentInfo(session, hadith_assesment_info, token_info)
 
 
 @router.get('/hadith_assesment')
@@ -43,8 +43,8 @@ def get_hadith_assesment_by_user_id(user_id: int, session: Session = Depends(get
 
 @router.put("/hadith_assesment/{id}", response_model=UpdateHadithAssesment)
 def update_hadith_assesment(id: int, info_update: UpdateHadithAssesment, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    TokenAuthorization(session, token)
-    return UpdateHadithAssesmentInfo(session, id, info_update)
+    token_info = TokenAuthorization(session, token)
+    return UpdateHadithAssesmentInfo(session, id, info_update, token_info)
 
 
 @router.delete("/hadith_assesment/{id}")

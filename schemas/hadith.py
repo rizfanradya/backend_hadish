@@ -2,7 +2,6 @@ from pydantic import BaseModel
 
 
 class CreateAndUpdateHadith(BaseModel):
-    created_by: int
-    updated_by: int
-    hadith: str
+    hadith_arab: str
+    hadith_melayu: str
     explanation: str

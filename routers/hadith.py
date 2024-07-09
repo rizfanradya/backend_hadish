@@ -20,8 +20,8 @@ def create_new_hadith(hadith_info: CreateAndUpdateHadith, session: Session = Dep
 
 @router.post('/hadith/upload')
 async def upload_data_hadith(file: UploadFile = File(...), session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    TokenAuthorization(session, token)
-    return await UploadFileHadith(session, file)
+    token_info = TokenAuthorization(session, token)
+    return await UploadFileHadith(session, token_info, file)
 
 
 @router.get('/hadith')

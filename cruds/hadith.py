@@ -20,7 +20,7 @@ def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_inf
     return new_hadith_info
 
 
-async def UploadFileHadith(session: Session, file: UploadFile = File(...)):
+async def UploadFileHadith(session: Session, token_info, file: UploadFile = File(...)):
     if not file.filename.endswith('.xlsx'):  # type: ignore
         raise HTTPException(
             status_code=404, detail="Invalid file format. Only .xlsx files are allowed.")
@@ -39,6 +39,8 @@ async def UploadFileHadith(session: Session, file: UploadFile = File(...)):
                 hadith_arab=row['hadish_arab'],
                 hadith_melayu=row['hadish_melayu'],
                 explanation=row['keterangan'],
+                created_by=token_info.id,
+                updated_by=token_info.id
             )  # type: ignore
             hadith_entries.append(hadith_entry)
 

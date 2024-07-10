@@ -7,7 +7,7 @@ import calendar
 
 load_dotenv()
 
-ACCESS_TOKEN_EXPIRE_MINUTES = 1  # 120 minutes
+ACCESS_TOKEN_EXPIRE_MINUTES = 60  # 60 minutes
 REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 ALGORITHM = "HS256"
 JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY')

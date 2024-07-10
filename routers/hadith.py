@@ -32,8 +32,8 @@ def download_hadith_template(session: Session = Depends(get_db), token: str = De
 
 @router.get('/hadith')
 def get_hadith(limit: int = 10, offset: int = 0, search: Optional[str] = None, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    TokenAuthorization(session, token)
-    return GetAllHadith(session, limit, offset, search)
+    token_info = TokenAuthorization(session, token)
+    return GetAllHadith(session, limit, offset, token_info, search)
 
 
 @router.get("/hadith/{id}")

@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from schemas.hadith import CreateAndUpdateHadith
 from fastapi import HTTPException
 from models.hadith import Hadith
+from models.hadithAssesment import HadithAssesment
 from utils import format_datetime
 from typing import Optional
 from sqlalchemy import or_
@@ -69,26 +70,30 @@ def DownloadExcel():
     return FileResponse(file_path, filename="format.xlsx", media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
-def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str] = None):
-    all_hadith = session.query(Hadith)
+def GetAllHadith(session: Session, limit: int, offset: int, token_info, search: Optional[str] = None):
+    all_hadith = session.query(Hadith).filter(~Hadith.id.in_(session.query(
+        HadithAssesment.hadith_id).filter(HadithAssesment.user_id == token_info.id)))
 
     if search:
         all_hadith = all_hadith.filter(or_(*[getattr(Hadith, column).ilike(
             f"%{search}%"
         ) for column in Hadith.__table__.columns.keys()]))  # type: ignore
 
-    all_hadith = all_hadith.offset(offset).limit(limit).all()  # type: ignore
+    total_data = all_hadith.count()
+    all_hadith = all_hadith.offset(offset).limit(limit).all()
 
     for hadith in all_hadith:
         hadith.created_by_name = session.query(UserInfo).get(
-            hadith.created_by).username if session.query(UserInfo).get(hadith.created_by) else None
+            hadith.created_by).username if session.query(UserInfo).get(hadith.created_by) else None  # type: ignore
         hadith.updated_by_name = session.query(UserInfo).get(
-            hadith.updated_by).username if session.query(UserInfo).get(hadith.updated_by) else None
-        hadith.created_at = format_datetime(hadith.created_at)
-        hadith.updated_at = format_datetime(hadith.updated_at)
+            hadith.updated_by).username if session.query(UserInfo).get(hadith.updated_by) else None  # type: ignore
+        hadith.created_at = format_datetime(  # type: ignore
+            hadith.created_at)
+        hadith.updated_at = format_datetime(  # type: ignore
+            hadith.updated_at)
 
     return {
-        "total_data": len(all_hadith),
+        "total_data": total_data,
         "limit": limit,
         "offset": offset,
         "search": search,
@@ -105,9 +110,9 @@ def GetHadithById(session: Session, id: int, format: bool = True):
 
     if format:
         hadith_info.created_by_name = session.query(UserInfo).get(
-            hadith_info.created_by).username if session.query(UserInfo).get(hadith_info.created_by) else None
+            hadith_info.created_by).username if session.query(UserInfo).get(hadith_info.created_by) else None  # type: ignore
         hadith_info.updated_by_name = session.query(UserInfo).get(
-            hadith_info.updated_by).username if session.query(UserInfo).get(hadith_info.updated_by) else None
+            hadith_info.updated_by).username if session.query(UserInfo).get(hadith_info.updated_by) else None  # type: ignore
         hadith_info.created_at = format_datetime(hadith_info.created_at)
         hadith_info.updated_at = format_datetime(hadith_info.updated_at)
 

@@ -8,6 +8,7 @@ from sqlalchemy import or_
 from models.user import UserInfo
 from fastapi import File, UploadFile
 import pandas as pd
+from io import BytesIO
 
 
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_info):
@@ -28,8 +29,14 @@ async def UploadFileHadith(session: Session, token_info, file: UploadFile = File
     try:
         df = pd.read_excel(file.file)
     except Exception as error:
-        raise HTTPException(
-            status_code=404, detail="Could not read the Excel file.")
+        try:
+            file.file.seek(0)
+            excel_data = file.file.read()
+            file_bytes = BytesIO(excel_data)
+            df = pd.read_excel(file_bytes)
+        except:
+            raise HTTPException(
+                status_code=404, detail="Could not read the Excel file.")
 
     try:
         df = df.fillna('')

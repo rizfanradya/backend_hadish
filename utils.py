@@ -4,7 +4,6 @@ import jwt
 import os
 from dotenv import load_dotenv
 import calendar
-import pytz
 
 load_dotenv()
 
@@ -63,8 +62,7 @@ def format_datetime(date_time):
         month_name = calendar.month_name[date_time.month]
         am_pm = "AM" if date_time.hour < 12 else "PM"
         hour = date_time.hour if date_time.hour <= 12 else date_time.hour - 12
-        formatted_date = f"{day_id}, {date_time.day} {month_name} {
-            date_time.year} {hour}:{date_time.strftime('%M')} {am_pm}"
+        formatted_date = f"{day_id}, {date_time.day} {month_name} {date_time.year} {hour}:{date_time.strftime('%M')} {am_pm}"
         return formatted_date
     else:
         return

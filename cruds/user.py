@@ -5,7 +5,7 @@ from password_validator import PasswordValidator
 import hashlib
 from models.user import UserInfo
 from email_validator import validate_email, EmailNotValidError
-from utils import format_datetime, create_access_token, create_refresh_token, ALGORITHM, JWT_SECRET_KEY
+from utils import format_datetime, create_access_token, create_refresh_token, ALGORITHM, JWT_SECRET_KEY, JWT_REFRESH_SECRET_KEY
 from typing import Optional
 from sqlalchemy import or_
 import jwt
@@ -238,26 +238,26 @@ def TokenAuthorization(session: Session, token: str):
 
         user_info = session.query(UserInfo).get(decode_token.get('id'))
         if user_info is None:
-            raise HTTPException(status_code=404, detail='User Not Found')
+            raise HTTPException(status_code=401, detail='User Not Found')
         return user_info
 
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=404, detail='Token has expired')
+        raise HTTPException(status_code=401, detail='Token has expired')
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=404, detail='Token is Invalid')
+        raise HTTPException(status_code=401, detail='Token is Invalid')
 
 
-def RefreshToken(session: Session, token: str):
-    if JWT_SECRET_KEY is None:
+def RefreshToken(session: Session, refresh_token: str):
+    if JWT_REFRESH_SECRET_KEY is None:
         raise EnvironmentError(f"Environment variable JWT_SECRET_KEY not set")
 
     try:
         decode_token = jwt.decode(
-            token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+            refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=[ALGORITHM])
 
         user_info = session.query(UserInfo).get(decode_token.get('id'))
         if user_info is None:
-            raise HTTPException(status_code=404, detail='User Not Found')
+            raise HTTPException(status_code=401, detail='User Not Found')
 
         return {
             "access_token": create_access_token(user_info.id),
@@ -265,6 +265,6 @@ def RefreshToken(session: Session, token: str):
         }
 
     except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=404, detail='Token has expired')
+        raise HTTPException(status_code=401, detail='Token has expired')
     except jwt.InvalidTokenError:
-        raise HTTPException(status_code=404, detail='Token is Invalid')
+        raise HTTPException(status_code=401, detail='Token is Invalid')

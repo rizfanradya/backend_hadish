@@ -20,10 +20,9 @@ async def user_login(form_data: OAuth2PasswordRequestForm = Depends(), session: 
     return get_login(session, form_data)
 
 
-@router.get("/refresh_token")
-async def refresh_token(token: str = Depends(oauth2_scheme), session: Session = Depends(get_db)):
-    TokenAuthorization(session, token)
-    return RefreshToken(session, token)
+@router.post("/refresh_token/{refresh_token}")
+async def refresh_token(refresh_token: str, session: Session = Depends(get_db)):
+    return RefreshToken(session, refresh_token)
 
 
 @router.get('/user')

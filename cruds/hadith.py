@@ -9,6 +9,9 @@ from models.user import UserInfo
 from fastapi import File, UploadFile
 import pandas as pd
 from io import BytesIO
+from fastapi import File
+from starlette.responses import FileResponse
+import os
 
 
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_info):
@@ -57,6 +60,13 @@ async def UploadFileHadith(session: Session, token_info, file: UploadFile = File
         raise HTTPException(status_code=404, detail='Invalid Excel format')
 
     return hadith_entries
+
+
+def DownloadExcel():
+    file_path = "/project/backend_hadish/uploads/format.xlsx"
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found.")
+    return FileResponse(file_path, filename="format.xlsx", media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
 def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str] = None):

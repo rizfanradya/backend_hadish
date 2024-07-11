@@ -109,9 +109,9 @@ def GetAllHadith(session: Session, limit: int, offset: int, filter_by, amount_of
     }
 
 
-def GetAllHadithEvaluate(session: Session, limit: int, offset: int, token_info, search: Optional[str] = None):
+def GetAllHadithEvaluate(session: Session, limit: int, offset: int, user_id, search: Optional[str] = None):
     all_hadith = session.query(Hadith).filter(~Hadith.id.in_(session.query(
-        HadithAssesment.hadith_id).filter(HadithAssesment.user_id == token_info.id)))
+        HadithAssesment.hadith_id).filter(HadithAssesment.user_id == user_id)))
 
     if search:
         all_hadith = all_hadith.filter(or_(*[getattr(Hadith, column).ilike(

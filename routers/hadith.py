@@ -37,9 +37,9 @@ def get_hadith(limit: int = 10, offset: int = 0, search: Optional[str] = None, f
 
 
 @router.get('/hadith/evaluate')
-def get_hadith_evaluate(limit: int = 10, offset: int = 0, search: Optional[str] = None, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    token_info = TokenAuthorization(session, token)
-    return GetAllHadithEvaluate(session, limit, offset, token_info, search)
+def get_hadith_evaluate_for_user(user_id: str, limit: int = 10, offset: int = 0, search: Optional[str] = None, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    TokenAuthorization(session, token)
+    return GetAllHadithEvaluate(session, limit, offset, user_id, search)
 
 
 @router.get("/hadith/{id}")

@@ -31,18 +31,19 @@ def GetAllRole(session: Session, limit: int, offset: int, search: Optional[str] 
             f"%{search}%"
         ) for column in Role.__table__.columns.keys()]))  # type: ignore
 
+    total_data = all_role.count()
     all_role = all_role.offset(offset).limit(limit).all()  # type: ignore
 
     for role in all_role:
         role.created_by_name = session.query(UserInfo).get(
-            role.created_by).username if session.query(UserInfo).get(role.created_by) else None
+            role.created_by).username if session.query(UserInfo).get(role.created_by) else None  # type: ignore
         role.updated_by_name = session.query(UserInfo).get(
-            role.updated_by).username if session.query(UserInfo).get(role.updated_by) else None
-        role.created_at = format_datetime(role.created_at)
-        role.updated_at = format_datetime(role.updated_at)
+            role.updated_by).username if session.query(UserInfo).get(role.updated_by) else None  # type: ignore
+        role.created_at = format_datetime(role.created_at)  # type: ignore
+        role.updated_at = format_datetime(role.updated_at)  # type: ignore
 
     return {
-        "total_data": len(all_role),
+        "total_data": total_data,
         "limit": limit,
         "offset": offset,
         "search": search,
@@ -59,9 +60,9 @@ def GetRoleById(session: Session, id: int, format: bool = True):
 
     if format:
         role_info.created_by_name = session.query(UserInfo).get(
-            role_info.created_by).username if session.query(UserInfo).get(role_info.created_by) else None
+            role_info.created_by).username if session.query(UserInfo).get(role_info.created_by) else None  # type: ignore
         role_info.updated_by_name = session.query(UserInfo).get(
-            role_info.updated_by).username if session.query(UserInfo).get(role_info.updated_by) else None
+            role_info.updated_by).username if session.query(UserInfo).get(role_info.updated_by) else None  # type: ignore
         role_info.created_at = format_datetime(role_info.created_at)
         role_info.updated_at = format_datetime(role_info.updated_at)
 
@@ -77,11 +78,13 @@ def GetRoleByRole(session: Session, role: str, format: bool = True):
 
     if format:
         role_info.created_by_name = session.query(UserInfo).get(
-            role_info.created_by).username if session.query(UserInfo).get(role_info.created_by) else None
+            role_info.created_by).username if session.query(UserInfo).get(role_info.created_by) else None  # type: ignore
         role_info.updated_by_name = session.query(UserInfo).get(
-            role_info.updated_by).username if session.query(UserInfo).get(role_info.updated_by) else None
-        role_info.created_at = format_datetime(role_info.created_at)
-        role_info.updated_at = format_datetime(role_info.updated_at)
+            role_info.updated_by).username if session.query(UserInfo).get(role_info.updated_by) else None  # type: ignore
+        role_info.created_at = format_datetime(  # type: ignore
+            role_info.created_at)
+        role_info.updated_at = format_datetime(  # type: ignore
+            role_info.updated_at)
 
     return role_info
 

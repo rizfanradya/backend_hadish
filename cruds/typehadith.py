@@ -30,19 +30,22 @@ def GetAllTypeHadith(session: Session, limit: int, offset: int, search: Optional
             f"%{search}%"
         ) for column in TypeHadith.__table__.columns.keys()]))  # type: ignore
 
+    total_data = all_type_hadith.count()
     all_type_hadith = all_type_hadith.offset(
         offset).limit(limit).all()  # type: ignore
 
     for type_hadith in all_type_hadith:
         type_hadith.created_by_name = session.query(UserInfo).get(
-            type_hadith.created_by).username if session.query(UserInfo).get(type_hadith.created_by) else None
+            type_hadith.created_by).username if session.query(UserInfo).get(type_hadith.created_by) else None  # type: ignore
         type_hadith.updated_by_name = session.query(UserInfo).get(
-            type_hadith.updated_by).username if session.query(UserInfo).get(type_hadith.updated_by) else None
-        type_hadith.created_at = format_datetime(type_hadith.created_at)
-        type_hadith.updated_at = format_datetime(type_hadith.updated_at)
+            type_hadith.updated_by).username if session.query(UserInfo).get(type_hadith.updated_by) else None  # type: ignore
+        type_hadith.created_at = format_datetime(  # type: ignore
+            type_hadith.created_at)
+        type_hadith.updated_at = format_datetime(  # type: ignore
+            type_hadith.updated_at)
 
     return {
-        "total_data": len(all_type_hadith),
+        "total_data": total_data,
         "limit": limit,
         "offset": offset,
         "search": search,
@@ -62,9 +65,9 @@ def GetTypeHadithById(session: Session, id: int, format: bool = True, error_hand
 
     if format:
         type_hadith_info.created_by_name = session.query(UserInfo).get(
-            type_hadith_info.created_by).username if session.query(UserInfo).get(type_hadith_info.created_by) else None
+            type_hadith_info.created_by).username if session.query(UserInfo).get(type_hadith_info.created_by) else None  # type: ignore
         type_hadith_info.updated_by_name = session.query(UserInfo).get(
-            type_hadith_info.updated_by).username if session.query(UserInfo).get(type_hadith_info.updated_by) else None
+            type_hadith_info.updated_by).username if session.query(UserInfo).get(type_hadith_info.updated_by) else None  # type: ignore
         type_hadith_info.created_at = format_datetime(
             type_hadith_info.created_at)
         type_hadith_info.updated_at = format_datetime(

@@ -43,6 +43,7 @@ def GetAllHadithAssesment(session: Session, limit: int, offset: int, search: Opt
         ) for column in HadithAssesment
             .__table__.columns.keys()]))  # type: ignore
 
+    total_data = all_hadith_assesment.count()
     all_hadith_assesment = all_hadith_assesment.offset(
         offset).limit(limit).all()  # type: ignore
 
@@ -63,7 +64,7 @@ def GetAllHadithAssesment(session: Session, limit: int, offset: int, search: Opt
             hadith_assesment.updated_at)
 
     return {
-        "total_data": len(all_hadith_assesment),
+        "total_data": total_data,
         "limit": limit,
         "offset": offset,
         "search": search,
@@ -100,16 +101,19 @@ def GetHadithAssesmentById(session: Session, id: int, format: bool = True, error
     return hadith_assesment_info
 
 
-def GetHadithAssesmentByHadith(session: Session, hadith_id: int, error_handling: bool = True):
+def GetHadithAssesmentByHadith(session: Session, hadith_id: str, limit: int, offset: int, search: Optional[str] = None):
     hadith_assesment_info = session.query(
-        HadithAssesment).where(HadithAssesment.hadith_id == hadith_id).all()
+        HadithAssesment).where(HadithAssesment.hadith_id == hadith_id)
 
-    if hadith_assesment_info is None:
-        if error_handling:
-            raise HTTPException(
-                status_code=404, detail=f"Hadith assesment '{hadith_id}' not found")
-        else:
-            return
+    if search:
+        hadith_assesment_info = hadith_assesment_info.filter(or_(*[getattr(HadithAssesment, column).ilike(
+            f"%{search}%"
+        ) for column in HadithAssesment
+            .__table__.columns.keys()]))  # type: ignore
+
+    total_data = hadith_assesment_info.count()
+    hadith_assesment_info = hadith_assesment_info.offset(
+        offset).limit(limit).all()  # type: ignore
 
     for hadith_assesment in hadith_assesment_info:
         hadith_assesment.evaluation_name = session.query(TypeHadith).get(
@@ -127,19 +131,28 @@ def GetHadithAssesmentByHadith(session: Session, hadith_id: int, error_handling:
         hadith_assesment.updated_at = format_datetime(  # type: ignore
             hadith_assesment.updated_at)
 
-    return hadith_assesment_info
+    return {
+        "total_data": total_data,
+        "limit": limit,
+        "offset": offset,
+        "search": search,
+        "data": hadith_assesment_info
+    }
 
 
-def GetHadithAssesmentByUser(session: Session, user_id: int, error_handling: bool = True):
+def GetHadithAssesmentByUser(session: Session, user_id: int, limit: int, offset: int, search: Optional[str] = None):
     hadith_assesment_info = session.query(
-        HadithAssesment).where(HadithAssesment.user_id == user_id).all()
+        HadithAssesment).where(HadithAssesment.user_id == user_id)
 
-    if hadith_assesment_info is None:
-        if error_handling:
-            raise HTTPException(
-                status_code=404, detail=f"Hadith assesment by user '{user_id}' not found")
-        else:
-            return
+    if search:
+        hadith_assesment_info = hadith_assesment_info.filter(or_(*[getattr(HadithAssesment, column).ilike(
+            f"%{search}%"
+        ) for column in HadithAssesment
+            .__table__.columns.keys()]))  # type: ignore
+
+    total_data = hadith_assesment_info.count()
+    hadith_assesment_info = hadith_assesment_info.offset(
+        offset).limit(limit).all()  # type: ignore
 
     for hadith_assesment in hadith_assesment_info:
         hadith_assesment.evaluation_name = session.query(TypeHadith).get(
@@ -157,7 +170,13 @@ def GetHadithAssesmentByUser(session: Session, user_id: int, error_handling: boo
         hadith_assesment.updated_at = format_datetime(  # type: ignore
             hadith_assesment.updated_at)
 
-    return hadith_assesment_info
+    return {
+        "total_data": total_data,
+        "limit": limit,
+        "offset": offset,
+        "search": search,
+        "data": hadith_assesment_info
+    }
 
 
 def UpdateHadithAssesmentInfo(session: Session, id: int, info_update: UpdateHadithAssesment, token_info):

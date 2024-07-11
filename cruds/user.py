@@ -38,9 +38,9 @@ def create_user(session: Session, user_info: CreateUser):
                 user_data = user_info.dict(exclude={'confirm_password'})
 
                 new_user_info = UserInfo(**user_data)
-                new_user_info.password = hash_password
-                new_user_info.role = new_user_info.role if new_user_info.role else role_info.id
-                new_user_info.status = True
+                new_user_info.password = hash_password  # type: ignore
+                new_user_info.role = new_user_info.role if new_user_info.role else role_info.id  # type: ignore
+                new_user_info.status = True  # type: ignore
 
                 session.add(new_user_info)
                 session.commit()
@@ -75,22 +75,23 @@ def get_all_user(session: Session, limit: int, offset: int, search: Optional[str
             f"%{search}%"
         ) for column in UserInfo.__table__.columns.keys()]))  # type: ignore
 
+    total_data = all_user.count()
     all_user = all_user.offset(offset).limit(limit).all()  # type: ignore
 
     for user in all_user:
-        user.password = ''
+        user.password = ''  # type: ignore
         user.created_by_name = session.query(UserInfo).get(
-            user.created_by).username if session.query(UserInfo).get(user.created_by) else None
+            user.created_by).username if session.query(UserInfo).get(user.created_by) else None  # type: ignore
         user.updated_by_name = session.query(UserInfo).get(
-            user.updated_by).username if session.query(UserInfo).get(user.updated_by) else None
-        user.status_name = "ACTIVE" if user.status else "INACTIVE"
+            user.updated_by).username if session.query(UserInfo).get(user.updated_by) else None  # type: ignore
+        user.status_name = "ACTIVE" if user.status else "INACTIVE"  # type: ignore
         user.role_name = role_mapping.get(user.role).role if role_mapping.get(  # type: ignore
             user.role) else None
-        user.created_at = format_datetime(user.created_at)
-        user.updated_at = format_datetime(user.updated_at)
+        user.created_at = format_datetime(user.created_at)  # type: ignore
+        user.updated_at = format_datetime(user.updated_at)  # type: ignore
 
     return {
-        "total_data": len(all_user),
+        "total_data": total_data,
         "limit": limit,
         "offset": offset,
         "search": search,
@@ -105,7 +106,7 @@ def get_login(session: Session, user_login):
         raise HTTPException(status_code=404, detail="User not found")
 
     hash_password = hashlib.md5(user_login.password.encode()).hexdigest()
-    if user_info.password == hash_password:
+    if user_info.password == hash_password:  # type: ignore
         return {
             "id": user_info.id,
             "access_token": create_access_token(user_info.id),
@@ -138,11 +139,11 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
     if format:
         user_info.password = ''
         user_info.created_by_name = session.query(UserInfo).get(
-            user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None
+            user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None  # type: ignore
         user_info.updated_by_name = session.query(UserInfo).get(
-            user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None
+            user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None  # type: ignore
         user_info.role_name = session.query(Role).get(
-            user_info.role).role if session.query(Role).get(user_info.role) else None
+            user_info.role).role if session.query(Role).get(user_info.role) else None  # type: ignore
         user_info.status_name = "ACTIVE" if user_info.status else "INACTIVE"
         user_info.created_at = format_datetime(user_info.created_at)
         user_info.updated_at = format_datetime(user_info.updated_at)
@@ -164,17 +165,19 @@ def GetUserByUsername(session: Session, username: str, format: bool = True, erro
             return
 
     if format:
-        user_info.password = ''
+        user_info.password = ''  # type: ignore
         user_info.role_id = user_info.role
         user_info.created_by_name = session.query(UserInfo).get(
-            user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None
+            user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None  # type: ignore
         user_info.updated_by_name = session.query(UserInfo).get(
-            user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None
+            user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None  # type: ignore
         user_info.role_name = session.query(Role).get(
-            user_info.role).role if session.query(Role).get(user_info.role) else None
-        user_info.status_name = "ACTIVE" if user_info.status else "INACTIVE"
-        user_info.created_at = format_datetime(user_info.created_at)
-        user_info.updated_at = format_datetime(user_info.updated_at)
+            user_info.role).role if session.query(Role).get(user_info.role) else None  # type: ignore
+        user_info.status_name = "ACTIVE" if user_info.status else "INACTIVE"  # type: ignore
+        user_info.created_at = format_datetime(  # type: ignore
+            user_info.created_at)
+        user_info.updated_at = format_datetime(  # type: ignore
+            user_info.updated_at)
 
     return user_info
 

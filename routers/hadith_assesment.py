@@ -29,16 +29,16 @@ def get_hadith_assesment_by_id(id: int, session: Session = Depends(get_db), toke
     return GetHadithAssesmentById(session, id)
 
 
-@router.get("/hadith_assesment/hadith_id/{hadith_id}")
-def get_hadith_assesment_by_hadith_id(hadith_id: int, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+@router.get("/hadith_assesment/hadith_id/")
+def get_hadith_assesment_by_hadith_id(hadith_id: str, limit: int = 10, offset: int = 0, search: Optional[str] = None, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     TokenAuthorization(session, token)
-    return GetHadithAssesmentByHadith(session, hadith_id)
+    return GetHadithAssesmentByHadith(session, hadith_id, limit, offset, search)
 
 
-@router.get("/hadith_assesment/user_id/{user_id}")
-def get_hadith_assesment_by_user_id(user_id: int, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+@router.get("/hadith_assesment/user_id/")
+def get_hadith_assesment_by_user_id(user_id: int, limit: int = 10, offset: int = 0, search: Optional[str] = None, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     TokenAuthorization(session, token)
-    return GetHadithAssesmentByUser(session, user_id)
+    return GetHadithAssesmentByUser(session, user_id, limit, offset, search)
 
 
 @router.put("/hadith_assesment/{id}", response_model=UpdateHadithAssesment)

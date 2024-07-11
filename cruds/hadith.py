@@ -70,7 +70,37 @@ def DownloadExcel():
     return FileResponse(file_path, filename="format.xlsx", media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
-def GetAllHadith(session: Session, limit: int, offset: int, token_info, search: Optional[str] = None):
+def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str] = None):
+    all_hadith = session.query(Hadith)
+
+    if search:
+        all_hadith = all_hadith.filter(or_(*[getattr(Hadith, column).ilike(
+            f"%{search}%"
+        ) for column in Hadith.__table__.columns.keys()]))  # type: ignore
+
+    total_data = all_hadith.count()
+    all_hadith = all_hadith.offset(offset).limit(limit).all()
+
+    for hadith in all_hadith:
+        hadith.created_by_name = session.query(UserInfo).get(
+            hadith.created_by).username if session.query(UserInfo).get(hadith.created_by) else None  # type: ignore
+        hadith.updated_by_name = session.query(UserInfo).get(
+            hadith.updated_by).username if session.query(UserInfo).get(hadith.updated_by) else None  # type: ignore
+        hadith.created_at = format_datetime(  # type: ignore
+            hadith.created_at)
+        hadith.updated_at = format_datetime(  # type: ignore
+            hadith.updated_at)
+
+    return {
+        "total_data": total_data,
+        "limit": limit,
+        "offset": offset,
+        "search": search,
+        "data": all_hadith
+    }
+
+
+def GetAllHadithEvaluate(session: Session, limit: int, offset: int, token_info, search: Optional[str] = None):
     all_hadith = session.query(Hadith).filter(~Hadith.id.in_(session.query(
         HadithAssesment.hadith_id).filter(HadithAssesment.user_id == token_info.id)))
 

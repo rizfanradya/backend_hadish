@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from schemas.hadith import CreateAndUpdateHadith
 from database import get_db
 from typing import Optional
-from cruds.hadith import CreateHadith, GetAllHadith, GetHadithById, UpdateHadith, DeleteHadith, UploadFileHadith, DownloadExcel
+from cruds.hadith import CreateHadith, GetAllHadith, GetHadithById, UpdateHadith, DeleteHadith, UploadFileHadith, DownloadExcel, GetAllHadithEvaluate
 from cruds.user import TokenAuthorization
 from fastapi import File, UploadFile
 
@@ -32,8 +32,14 @@ def download_hadith_template(session: Session = Depends(get_db), token: str = De
 
 @router.get('/hadith')
 def get_hadith(limit: int = 10, offset: int = 0, search: Optional[str] = None, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    TokenAuthorization(session, token)
+    return GetAllHadith(session, limit, offset, search)
+
+
+@router.get('/hadith/evaluate')
+def get_hadith_evaluate(limit: int = 10, offset: int = 0, search: Optional[str] = None, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     token_info = TokenAuthorization(session, token)
-    return GetAllHadith(session, limit, offset, token_info, search)
+    return GetAllHadithEvaluate(session, limit, offset, token_info, search)
 
 
 @router.get("/hadith/{id}")

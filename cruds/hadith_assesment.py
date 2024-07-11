@@ -101,6 +101,27 @@ def GetHadithAssesmentById(session: Session, id: int, format: bool = True, error
     return hadith_assesment_info
 
 
+def GetAllHadithAssesmentByHadithId(session: Session, hadith_id: int):
+    hadith_assesment_info = session.query(
+        HadithAssesment).where(HadithAssesment.hadith_id == hadith_id).all()
+
+    for hadith_assesment in hadith_assesment_info:
+        hadith_assesment.evaluation_name = session.query(TypeHadith).get(
+            hadith_assesment.evaluation_id).type if session.query(TypeHadith).get(hadith_assesment.evaluation_id) else None  # type: ignore
+        hadith_assesment.username = get_user_by_id(
+            session, hadith_assesment.user_id, error_handling=False).username  # type: ignore
+        hadith_assesment.created_by_name = session.query(UserInfo).get(
+            hadith_assesment.created_by).username if session.query(UserInfo).get(hadith_assesment.created_by) else None  # type: ignore
+        hadith_assesment.updated_by_name = session.query(UserInfo).get(
+            hadith_assesment.updated_by).username if session.query(UserInfo).get(hadith_assesment.updated_by) else None  # type: ignore
+        hadith_assesment.created_at = format_datetime(  # type: ignore
+            hadith_assesment.created_at)
+        hadith_assesment.updated_at = format_datetime(  # type: ignore
+            hadith_assesment.updated_at)
+
+    return hadith_assesment_info
+
+
 def GetHadithAssesmentByHadith(session: Session, hadith_id: str, limit: int, offset: int, search: Optional[str] = None):
     hadith_assesment_info = session.query(
         HadithAssesment).where(HadithAssesment.hadith_id == hadith_id)

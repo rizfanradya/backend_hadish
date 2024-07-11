@@ -71,6 +71,8 @@ def DownloadExcel():
 
 
 def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str] = None):
+    from cruds.hadith_assesment import GetAllHadithAssesmentByHadithId
+
     all_hadith = session.query(Hadith)
 
     if search:
@@ -82,6 +84,8 @@ def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str
     all_hadith = all_hadith.offset(offset).limit(limit).all()
 
     for hadith in all_hadith:
+        hadith.assesed = GetAllHadithAssesmentByHadithId(
+            session, hadith.id)  # type: ignore
         hadith.created_by_name = session.query(UserInfo).get(
             hadith.created_by).username if session.query(UserInfo).get(hadith.created_by) else None  # type: ignore
         hadith.updated_by_name = session.query(UserInfo).get(

@@ -131,12 +131,15 @@ def GetAllHadithEvaluate(session: Session, limit: int, offset: int, token_info, 
     }
 
 
-def GetHadithById(session: Session, id: int, format: bool = True):
+def GetHadithById(session: Session, id: int, format: bool = True, error_handling: bool = True):
     hadith_info = session.query(Hadith).get(id)
 
     if hadith_info is None:
-        raise HTTPException(
-            status_code=404, detail=f"Hadith id {id} not found")
+        if error_handling:
+            raise HTTPException(
+                status_code=404, detail=f"Hadith id {id} not found")
+        else:
+            return
 
     if format:
         hadith_info.created_by_name = session.query(UserInfo).get(
@@ -152,7 +155,7 @@ def GetHadithById(session: Session, id: int, format: bool = True):
 def UpdateHadith(session: Session, id: int, info_update: CreateAndUpdateHadith, token_info):
     hadith_info = GetHadithById(session, id, False)
 
-    hadith_info.updated_by = token_info.id
+    hadith_info.updated_by = token_info.id  # type: ignore
     for attr, value in info_update.__dict__.items():
         setattr(hadith_info, attr, value)
     session.commit()

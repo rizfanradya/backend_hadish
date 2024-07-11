@@ -13,6 +13,7 @@ from io import BytesIO
 from fastapi import File
 from starlette.responses import FileResponse
 import os
+from sqlalchemy import func
 
 
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_info):
@@ -76,7 +77,8 @@ def GetAllHadith(session: Session, limit: int, offset: int, filter_by, number_of
     if filter_by == 'all':
         all_hadith = session.query(Hadith)
     else:
-        all_hadith = session.query(Hadith)
+        all_hadith = session.query(Hadith).filter(HadithAssesment.hadith_id == Hadith.id).group_by(
+            Hadith.id).having(func.count(HadithAssesment.id) == number_of_appraisers)
 
     if search:
         all_hadith = all_hadith.filter(or_(*[getattr(Hadith, column).ilike(

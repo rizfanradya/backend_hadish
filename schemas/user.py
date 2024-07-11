@@ -10,7 +10,7 @@ class CreateUser(BaseModel):
     email: str
     password: str
     confirm_password: str
-    role: Optional[int]
+    role: Optional[int] = 0
 
 
 class UpdateUser(BaseModel):

@@ -70,10 +70,13 @@ def DownloadExcel():
     return FileResponse(file_path, filename="format.xlsx", media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
-def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str] = None):
+def GetAllHadith(session: Session, limit: int, offset: int, filter_by, number_of_appraisers, search: Optional[str] = None):
     from cruds.hadith_assesment import GetAllHadithAssesmentByHadithId
 
-    all_hadith = session.query(Hadith)
+    if filter_by == 'all':
+        all_hadith = session.query(Hadith)
+    else:
+        all_hadith = session.query(Hadith)
 
     if search:
         all_hadith = all_hadith.filter(or_(*[getattr(Hadith, column).ilike(

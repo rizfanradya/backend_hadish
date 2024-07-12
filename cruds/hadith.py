@@ -174,6 +174,10 @@ def UpdateHadith(session: Session, id: int, info_update: CreateAndUpdateHadith, 
 
 def DeleteHadith(session: Session, id: int):
     hadith_info = GetHadithById(session, id, False)
+    hadith_assesment = session.query(HadithAssesment).filter(
+        HadithAssesment.hadith_id == id).all()
+    for assesment in hadith_assesment:
+        session.delete(assesment)
     session.delete(hadith_info)
     session.commit()
-    return f"Hadith id {id} deleted success"
+    return f'Hadith id "{id}" deleted success'

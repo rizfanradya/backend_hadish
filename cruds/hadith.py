@@ -14,8 +14,15 @@ import os
 
 
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_info):
+    from cruds.hadith_assesment import CreateHadithAssesmentInfo
+
     new_hadith_info = Hadith(**hadith_info.dict())
     new_hadith_info.created_by = token_info.id
+
+    CreateHadithAssesmentInfo(session, HadithAssesment(
+        hadith_id=new_hadith_info.id,
+        evaluation_id=hadith_info.evaluation_id,
+    ), token_info)
 
     session.add(new_hadith_info)
     session.commit()
@@ -61,7 +68,7 @@ async def UploadFileHadith(session: Session, token_info, file: UploadFile = File
     return hadith_entries
 
 
-def DownloadExcel():
+def DownloadHadith():
     file_path = "/project/backend_hadish/uploads/format.xlsx"
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found.")

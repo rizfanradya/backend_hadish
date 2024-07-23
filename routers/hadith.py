@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from schemas.hadith import CreateAndUpdateHadith
 from database import get_db
 from typing import Optional
-from cruds.hadith import CreateHadith, GetAllHadith, GetHadithById, UpdateHadith, DeleteHadith, UploadFileHadith, DownloadExcel, GetAllHadithEvaluate
+from cruds.hadith import CreateHadith, GetAllHadith, GetHadithById, UpdateHadith, DeleteHadith, UploadFileHadith, DownloadHadith, GetAllHadithEvaluate
 from cruds.user import TokenAuthorization
 from fastapi import File, UploadFile
 
@@ -24,10 +24,10 @@ async def upload_data_hadith(file: UploadFile = File(...), session: Session = De
     return await UploadFileHadith(session, token_info, file)
 
 
-@router.get('/hadith/download')
+@router.get('/hadith/template')
 def download_hadith_template(session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     TokenAuthorization(session, token)
-    return DownloadExcel()
+    return DownloadHadith()
 
 
 @router.get('/hadith')

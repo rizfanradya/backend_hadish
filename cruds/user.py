@@ -5,7 +5,7 @@ from password_validator import PasswordValidator
 import hashlib
 from models.user import UserInfo
 from email_validator import validate_email, EmailNotValidError
-from utils import format_datetime, create_access_token, create_refresh_token, ALGORITHM, JWT_SECRET_KEY, JWT_REFRESH_SECRET_KEY
+from utils import create_access_token, create_refresh_token, ALGORITHM, JWT_SECRET_KEY, JWT_REFRESH_SECRET_KEY
 from typing import Optional
 from sqlalchemy import or_
 import jwt
@@ -16,10 +16,6 @@ schema_password_validator.min(8).has().uppercase(
 
 
 def create_user(session: Session, user_info: CreateUser):
-    from cruds.role import GetRoleByRole
-
-    role_info = GetRoleByRole(session, 'USER', False)
-
     if user_info.password != user_info.confirm_password:
         raise HTTPException(
             status_code=404, detail="Password are not the same")
@@ -39,7 +35,6 @@ def create_user(session: Session, user_info: CreateUser):
 
                 new_user_info = UserInfo(**user_data)
                 new_user_info.password = hash_password  # type: ignore
-                new_user_info.role = new_user_info.role if new_user_info.role else role_info.id  # type: ignore
                 new_user_info.status = True  # type: ignore
 
                 session.add(new_user_info)
@@ -80,15 +75,9 @@ def get_all_user(session: Session, limit: int, offset: int, search: Optional[str
 
     for user in all_user:
         user.password = ''  # type: ignore
-        user.created_by_name = session.query(UserInfo).get(
-            user.created_by).username if session.query(UserInfo).get(user.created_by) else None  # type: ignore
-        user.updated_by_name = session.query(UserInfo).get(
-            user.updated_by).username if session.query(UserInfo).get(user.updated_by) else None  # type: ignore
         user.status_name = "ACTIVE" if user.status else "INACTIVE"  # type: ignore
         user.role_name = role_mapping.get(user.role).role if role_mapping.get(  # type: ignore
             user.role) else None
-        user.created_at = format_datetime(user.created_at)  # type: ignore
-        user.updated_at = format_datetime(user.updated_at)  # type: ignore
 
     return {
         "total_data": total_data,
@@ -138,15 +127,9 @@ def get_user_by_id(session: Session, id: int, format: bool = True, error_handlin
 
     if format:
         user_info.password = ''
-        user_info.created_by_name = session.query(UserInfo).get(
-            user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None  # type: ignore
-        user_info.updated_by_name = session.query(UserInfo).get(
-            user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None  # type: ignore
         user_info.role_name = session.query(Role).get(
             user_info.role).role if session.query(Role).get(user_info.role) else None  # type: ignore
         user_info.status_name = "ACTIVE" if user_info.status else "INACTIVE"
-        user_info.created_at = format_datetime(user_info.created_at)
-        user_info.updated_at = format_datetime(user_info.updated_at)
 
     return user_info
 
@@ -167,17 +150,9 @@ def GetUserByUsername(session: Session, username: str, format: bool = True, erro
     if format:
         user_info.password = ''  # type: ignore
         user_info.role_id = user_info.role
-        user_info.created_by_name = session.query(UserInfo).get(
-            user_info.created_by).username if session.query(UserInfo).get(user_info.created_by) else None  # type: ignore
-        user_info.updated_by_name = session.query(UserInfo).get(
-            user_info.updated_by).username if session.query(UserInfo).get(user_info.updated_by) else None  # type: ignore
         user_info.role_name = session.query(Role).get(
             user_info.role).role if session.query(Role).get(user_info.role) else None  # type: ignore
         user_info.status_name = "ACTIVE" if user_info.status else "INACTIVE"  # type: ignore
-        user_info.created_at = format_datetime(  # type: ignore
-            user_info.created_at)
-        user_info.updated_at = format_datetime(  # type: ignore
-            user_info.updated_at)
 
     return user_info
 
@@ -185,7 +160,7 @@ def GetUserByUsername(session: Session, username: str, format: bool = True, erro
 def update_user(session: Session, id: int, info_update: UpdateUser, token_info):
     from cruds.role import GetRoleById
 
-    GetRoleById(session, info_update.role, False)
+    GetRoleById(session, info_update.role)
     user_info = get_user_by_id(session, id, False)
 
     if info_update.password != info_update.confirm_password:

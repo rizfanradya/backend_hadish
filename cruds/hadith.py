@@ -3,17 +3,14 @@ from schemas.hadith import CreateAndUpdateHadith
 from fastapi import HTTPException
 from models.hadith import Hadith
 from models.hadithAssesment import HadithAssesment
-from utils import format_datetime
 from typing import Optional
 from sqlalchemy import or_
-from models.user import UserInfo
 from fastapi import File, UploadFile
 import pandas as pd
 from io import BytesIO
 from fastapi import File
 from starlette.responses import FileResponse
 import os
-from sqlalchemy import func
 
 
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_info):
@@ -87,14 +84,6 @@ def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str
     for hadith in all_hadith:
         hadith.assesed = GetAllHadithAssesmentByHadithId(
             session, hadith.id)  # type: ignore
-        hadith.created_by_name = session.query(UserInfo).get(
-            hadith.created_by).username if session.query(UserInfo).get(hadith.created_by) else None  # type: ignore
-        hadith.updated_by_name = session.query(UserInfo).get(
-            hadith.updated_by).username if session.query(UserInfo).get(hadith.updated_by) else None  # type: ignore
-        hadith.created_at = format_datetime(  # type: ignore
-            hadith.created_at)
-        hadith.updated_at = format_datetime(  # type: ignore
-            hadith.updated_at)
 
     return {
         "total_data": total_data,
@@ -117,16 +106,6 @@ def GetAllHadithEvaluate(session: Session, limit: int, offset: int, user_id, sea
     total_data = all_hadith.count()
     all_hadith = all_hadith.offset(offset).limit(limit).all()
 
-    for hadith in all_hadith:
-        hadith.created_by_name = session.query(UserInfo).get(
-            hadith.created_by).username if session.query(UserInfo).get(hadith.created_by) else None  # type: ignore
-        hadith.updated_by_name = session.query(UserInfo).get(
-            hadith.updated_by).username if session.query(UserInfo).get(hadith.updated_by) else None  # type: ignore
-        hadith.created_at = format_datetime(  # type: ignore
-            hadith.created_at)
-        hadith.updated_at = format_datetime(  # type: ignore
-            hadith.updated_at)
-
     return {
         "total_data": total_data,
         "limit": limit,
@@ -136,7 +115,7 @@ def GetAllHadithEvaluate(session: Session, limit: int, offset: int, user_id, sea
     }
 
 
-def GetHadithById(session: Session, id: int, format: bool = True, error_handling: bool = True):
+def GetHadithById(session: Session, id: int, error_handling: bool = True):
     hadith_info = session.query(Hadith).get(id)
 
     if hadith_info is None:
@@ -146,19 +125,11 @@ def GetHadithById(session: Session, id: int, format: bool = True, error_handling
         else:
             return
 
-    if format:
-        hadith_info.created_by_name = session.query(UserInfo).get(
-            hadith_info.created_by).username if session.query(UserInfo).get(hadith_info.created_by) else None  # type: ignore
-        hadith_info.updated_by_name = session.query(UserInfo).get(
-            hadith_info.updated_by).username if session.query(UserInfo).get(hadith_info.updated_by) else None  # type: ignore
-        hadith_info.created_at = format_datetime(hadith_info.created_at)
-        hadith_info.updated_at = format_datetime(hadith_info.updated_at)
-
     return hadith_info
 
 
 def UpdateHadith(session: Session, id: int, info_update: CreateAndUpdateHadith, token_info):
-    hadith_info = GetHadithById(session, id, False)
+    hadith_info = GetHadithById(session, id)
 
     hadith_info.updated_by = token_info.id  # type: ignore
     for attr, value in info_update.__dict__.items():
@@ -169,7 +140,7 @@ def UpdateHadith(session: Session, id: int, info_update: CreateAndUpdateHadith, 
 
 
 def DeleteHadith(session: Session, id: int):
-    hadith_info = GetHadithById(session, id, False)
+    hadith_info = GetHadithById(session, id)
     hadith_assesment = session.query(HadithAssesment).filter(
         HadithAssesment.hadith_id == id).all()
     for assesment in hadith_assesment:

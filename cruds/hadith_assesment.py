@@ -4,8 +4,6 @@ from models.hadithAssesment import HadithAssesment
 from models.typehadith import TypeHadith
 from typing import Optional
 from sqlalchemy import or_
-from models.user import UserInfo
-from utils import format_datetime
 from fastapi import HTTPException
 from cruds.user import get_user_by_id
 from cruds.hadith import GetHadithById
@@ -54,14 +52,6 @@ def GetAllHadithAssesment(session: Session, limit: int, offset: int, search: Opt
             session, hadith_assesment.user_id, error_handling=False)  # type: ignore
         hadith_assesment.hadith_info = GetHadithById(
             session, hadith_assesment.hadith_id, False, False)  # type: ignore
-        hadith_assesment.created_by_name = session.query(UserInfo).get(
-            hadith_assesment.created_by).username if session.query(UserInfo).get(hadith_assesment.created_by) else None  # type: ignore
-        hadith_assesment.updated_by_name = session.query(UserInfo).get(
-            hadith_assesment.updated_by).username if session.query(UserInfo).get(hadith_assesment.updated_by) else None  # type: ignore
-        hadith_assesment.created_at = format_datetime(  # type: ignore
-            hadith_assesment.created_at)
-        hadith_assesment.updated_at = format_datetime(  # type: ignore
-            hadith_assesment.updated_at)
 
     return {
         "total_data": total_data,
@@ -89,14 +79,6 @@ def GetHadithAssesmentById(session: Session, id: int, format: bool = True, error
             session, hadith_assesment_info.user_id, error_handling=False)  # type: ignore
         hadith_assesment_info.hadith_info = GetHadithById(
             session, hadith_assesment_info.hadith_id, error_handling=False)  # type: ignore
-        hadith_assesment_info.created_by_name = session.query(UserInfo).get(
-            hadith_assesment_info.created_by).username if session.query(UserInfo).get(hadith_assesment_info.created_by) else None  # type: ignore
-        hadith_assesment_info.updated_by_name = session.query(UserInfo).get(
-            hadith_assesment_info.updated_by).username if session.query(UserInfo).get(hadith_assesment_info.updated_by) else None  # type: ignore
-        hadith_assesment_info.created_at = format_datetime(
-            hadith_assesment_info.created_at)
-        hadith_assesment_info.updated_at = format_datetime(
-            hadith_assesment_info.updated_at)
 
     return hadith_assesment_info
 
@@ -110,14 +92,6 @@ def GetAllHadithAssesmentByHadithId(session: Session, hadith_id: int):
             hadith_assesment.evaluation_id).type if session.query(TypeHadith).get(hadith_assesment.evaluation_id) else None  # type: ignore
         hadith_assesment.username = get_user_by_id(
             session, hadith_assesment.user_id, error_handling=False).username  # type: ignore
-        hadith_assesment.created_by_name = session.query(UserInfo).get(
-            hadith_assesment.created_by).username if session.query(UserInfo).get(hadith_assesment.created_by) else None  # type: ignore
-        hadith_assesment.updated_by_name = session.query(UserInfo).get(
-            hadith_assesment.updated_by).username if session.query(UserInfo).get(hadith_assesment.updated_by) else None  # type: ignore
-        hadith_assesment.created_at = format_datetime(  # type: ignore
-            hadith_assesment.created_at)
-        hadith_assesment.updated_at = format_datetime(  # type: ignore
-            hadith_assesment.updated_at)
 
     return hadith_assesment_info
 
@@ -143,14 +117,6 @@ def GetHadithAssesmentByHadith(session: Session, hadith_id: str, limit: int, off
             session, hadith_assesment.user_id, error_handling=False)  # type: ignore
         hadith_assesment.hadith_info = GetHadithById(
             session, hadith_assesment.hadith_id, False, False)  # type: ignore
-        hadith_assesment.created_by_name = session.query(UserInfo).get(
-            hadith_assesment.created_by).username if session.query(UserInfo).get(hadith_assesment.created_by) else None  # type: ignore
-        hadith_assesment.updated_by_name = session.query(UserInfo).get(
-            hadith_assesment.updated_by).username if session.query(UserInfo).get(hadith_assesment.updated_by) else None  # type: ignore
-        hadith_assesment.created_at = format_datetime(  # type: ignore
-            hadith_assesment.created_at)
-        hadith_assesment.updated_at = format_datetime(  # type: ignore
-            hadith_assesment.updated_at)
 
     return {
         "total_data": total_data,
@@ -182,14 +148,6 @@ def GetHadithAssesmentByUser(session: Session, user_id: int, limit: int, offset:
             session, hadith_assesment.user_id, error_handling=False)  # type: ignore
         hadith_assesment.hadith_info = GetHadithById(
             session, hadith_assesment.hadith_id, error_handling=False)  # type: ignore
-        hadith_assesment.created_by_name = session.query(UserInfo).get(
-            hadith_assesment.created_by).username if session.query(UserInfo).get(hadith_assesment.created_by) else None  # type: ignore
-        hadith_assesment.updated_by_name = session.query(UserInfo).get(
-            hadith_assesment.updated_by).username if session.query(UserInfo).get(hadith_assesment.updated_by) else None  # type: ignore
-        hadith_assesment.created_at = format_datetime(  # type: ignore
-            hadith_assesment.created_at)
-        hadith_assesment.updated_at = format_datetime(  # type: ignore
-            hadith_assesment.updated_at)
 
     return {
         "total_data": total_data,

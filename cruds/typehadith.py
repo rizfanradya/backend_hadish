@@ -2,10 +2,8 @@ from sqlalchemy.orm import Session
 from schemas.typehadith import CreateAndUpdateTypeHadith
 from fastapi import HTTPException
 from models.typehadith import TypeHadith
-from utils import format_datetime
 from typing import Optional
 from sqlalchemy import or_
-from models.user import UserInfo
 
 
 def CreateTypeHadith(session: Session, type_hadith_info: CreateAndUpdateTypeHadith, token_info):
@@ -34,16 +32,6 @@ def GetAllTypeHadith(session: Session, limit: int, offset: int, search: Optional
     all_type_hadith = all_type_hadith.offset(
         offset).limit(limit).all()  # type: ignore
 
-    for type_hadith in all_type_hadith:
-        type_hadith.created_by_name = session.query(UserInfo).get(
-            type_hadith.created_by).username if session.query(UserInfo).get(type_hadith.created_by) else None  # type: ignore
-        type_hadith.updated_by_name = session.query(UserInfo).get(
-            type_hadith.updated_by).username if session.query(UserInfo).get(type_hadith.updated_by) else None  # type: ignore
-        type_hadith.created_at = format_datetime(  # type: ignore
-            type_hadith.created_at)
-        type_hadith.updated_at = format_datetime(  # type: ignore
-            type_hadith.updated_at)
-
     return {
         "total_data": total_data,
         "limit": limit,
@@ -53,7 +41,7 @@ def GetAllTypeHadith(session: Session, limit: int, offset: int, search: Optional
     }
 
 
-def GetTypeHadithById(session: Session, id: int, format: bool = True, error_handling: bool = True):
+def GetTypeHadithById(session: Session, id: int, error_handling: bool = True):
     type_hadith_info = session.query(TypeHadith).get(id)
 
     if type_hadith_info is None:
@@ -63,21 +51,11 @@ def GetTypeHadithById(session: Session, id: int, format: bool = True, error_hand
         else:
             return
 
-    if format:
-        type_hadith_info.created_by_name = session.query(UserInfo).get(
-            type_hadith_info.created_by).username if session.query(UserInfo).get(type_hadith_info.created_by) else None  # type: ignore
-        type_hadith_info.updated_by_name = session.query(UserInfo).get(
-            type_hadith_info.updated_by).username if session.query(UserInfo).get(type_hadith_info.updated_by) else None  # type: ignore
-        type_hadith_info.created_at = format_datetime(
-            type_hadith_info.created_at)
-        type_hadith_info.updated_at = format_datetime(
-            type_hadith_info.updated_at)
-
     return type_hadith_info
 
 
 def UpdateTypeHadith(session: Session, id: int, info_update: CreateAndUpdateTypeHadith, token_info):
-    type_hadith_info = GetTypeHadithById(session, id, False)
+    type_hadith_info = GetTypeHadithById(session, id)
     type_hadith_info.updated_by = token_info.id  # type: ignore
 
     for attr, value in info_update.__dict__.items():
@@ -88,7 +66,7 @@ def UpdateTypeHadith(session: Session, id: int, info_update: CreateAndUpdateType
 
 
 def DeleteTypeHadith(session: Session, id: int):
-    type_hadith_info = GetTypeHadithById(session, id, False)
+    type_hadith_info = GetTypeHadithById(session, id)
     session.delete(type_hadith_info)
     session.commit()
     return f"Hadith id {id} deleted success"

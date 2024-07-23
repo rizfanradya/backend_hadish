@@ -2,10 +2,8 @@ from sqlalchemy.orm import Session
 from schemas.role import CreateAndUpdateRole
 from fastapi import HTTPException
 from models.role import Role
-from utils import format_datetime
 from typing import Optional
 from sqlalchemy import or_
-from models.user import UserInfo
 
 
 def CreateRole(session: Session, role_info: CreateAndUpdateRole):
@@ -34,14 +32,6 @@ def GetAllRole(session: Session, limit: int, offset: int, search: Optional[str] 
     total_data = all_role.count()
     all_role = all_role.offset(offset).limit(limit).all()  # type: ignore
 
-    for role in all_role:
-        role.created_by_name = session.query(UserInfo).get(
-            role.created_by).username if session.query(UserInfo).get(role.created_by) else None  # type: ignore
-        role.updated_by_name = session.query(UserInfo).get(
-            role.updated_by).username if session.query(UserInfo).get(role.updated_by) else None  # type: ignore
-        role.created_at = format_datetime(role.created_at)  # type: ignore
-        role.updated_at = format_datetime(role.updated_at)  # type: ignore
-
     return {
         "total_data": total_data,
         "limit": limit,
@@ -51,46 +41,28 @@ def GetAllRole(session: Session, limit: int, offset: int, search: Optional[str] 
     }
 
 
-def GetRoleById(session: Session, id: int, format: bool = True):
+def GetRoleById(session: Session, id: int):
     role_info = session.query(Role).get(id)
 
     if role_info is None:
         raise HTTPException(
             status_code=404, detail=f"Role id {id} not found")
 
-    if format:
-        role_info.created_by_name = session.query(UserInfo).get(
-            role_info.created_by).username if session.query(UserInfo).get(role_info.created_by) else None  # type: ignore
-        role_info.updated_by_name = session.query(UserInfo).get(
-            role_info.updated_by).username if session.query(UserInfo).get(role_info.updated_by) else None  # type: ignore
-        role_info.created_at = format_datetime(role_info.created_at)
-        role_info.updated_at = format_datetime(role_info.updated_at)
-
     return role_info
 
 
-def GetRoleByRole(session: Session, role: str, format: bool = True):
+def GetRoleByRole(session: Session, role: str):
     role_info = session.query(Role).where(Role.role == role).first()
 
     if role_info is None:
         raise HTTPException(
             status_code=404, detail=f"Role '{role}' not found")
 
-    if format:
-        role_info.created_by_name = session.query(UserInfo).get(
-            role_info.created_by).username if session.query(UserInfo).get(role_info.created_by) else None  # type: ignore
-        role_info.updated_by_name = session.query(UserInfo).get(
-            role_info.updated_by).username if session.query(UserInfo).get(role_info.updated_by) else None  # type: ignore
-        role_info.created_at = format_datetime(  # type: ignore
-            role_info.created_at)
-        role_info.updated_at = format_datetime(  # type: ignore
-            role_info.updated_at)
-
     return role_info
 
 
 def UpdateRole(session: Session, id: int, info_update: CreateAndUpdateRole, token_info):
-    role_info = GetRoleById(session, id, False)
+    role_info = GetRoleById(session, id)
 
     try:
         info_update.role = info_update.role.upper()

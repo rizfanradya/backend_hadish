@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from schemas.hadith import CreateAndUpdateHadith
+from schemas.hadith_assesment import UpdateHadithAssesment, CreateHadithAssesment
 from fastapi import HTTPException
 from models.hadith import Hadith
 from models.hadithAssesment import HadithAssesment
@@ -16,15 +17,24 @@ import os
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_info):
     from cruds.hadith_assesment import CreateHadithAssesmentInfo
 
-    new_hadith_info = Hadith(**hadith_info.dict())
+    evaluation_id = hadith_info.evaluation_id
+    hadith_info_dict = hadith_info.dict()
+    del hadith_info_dict['evaluation_id']
+
+    new_hadith_info = Hadith(**hadith_info_dict)
     new_hadith_info.created_by = token_info.id
 
-    CreateHadithAssesmentInfo(session, HadithAssesment(
-        hadith_id=new_hadith_info.id,
-        evaluation_id=hadith_info.evaluation_id,
-    ), token_info)
-
     session.add(new_hadith_info)
+    session.flush()
+
+    CreateHadithAssesmentInfo(
+        session,
+        CreateHadithAssesment(
+            hadith_id=new_hadith_info.id,  # type: ignore
+            evaluation_id=evaluation_id,
+        ),
+        token_info)
+
     session.commit()
     session.refresh(new_hadith_info)
     return new_hadith_info
@@ -136,7 +146,26 @@ def GetHadithById(session: Session, id: int, error_handling: bool = True):
 
 
 def UpdateHadith(session: Session, id: int, info_update: CreateAndUpdateHadith, token_info):
+    from cruds.hadith_assesment import UpdateHadithAssesmentInfo, CreateHadithAssesmentInfo
+
     hadith_info = GetHadithById(session, id)
+
+    try:
+        hadith_assesment_info = session.query(HadithAssesment).where(
+            HadithAssesment.hadith_id == id, HadithAssesment.user_id == token_info.id).first()
+        UpdateHadithAssesmentInfo(
+            session, hadith_assesment_info.id,  # type: ignore
+            UpdateHadithAssesment(evaluation_id=info_update.evaluation_id),
+            token_info
+        )
+    except:
+        CreateHadithAssesmentInfo(
+            session,
+            CreateHadithAssesment(
+                hadith_id=id,
+                evaluation_id=info_update.evaluation_id,
+            ),
+            token_info)
 
     hadith_info.updated_by = token_info.id  # type: ignore
     for attr, value in info_update.__dict__.items():

@@ -131,7 +131,7 @@ def DownloadHadith(session: Session):
         "Hadith Arab": hadith.hadith_arab,
         "Hadith Melayu": hadith.hadith_melayu,
         "Explanation": hadith.explanation,
-        "Type": type_hadith.type
+        "Evaluation": type_hadith.type
     } for hadith, type_hadith in all_hadith])
 
     output = BytesIO()

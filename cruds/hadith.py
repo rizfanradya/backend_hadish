@@ -78,11 +78,15 @@ async def UploadFileHadith(session: Session, token_info, file: UploadFile = File
     return hadith_entries
 
 
-def DownloadHadith():
+def DownloadTemplate():
     file_path = "/project/backend_hadish/uploads/format.xlsx"
     if not os.path.exists(file_path):
         raise HTTPException(status_code=404, detail="File not found.")
     return FileResponse(file_path, filename="format.xlsx", media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+
+def DownloadHadith(session: Session):
+    return
 
 
 def GetAllHadith(session: Session, limit: int, offset: int, search: Optional[str] = None):

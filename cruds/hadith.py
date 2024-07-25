@@ -170,17 +170,31 @@ def DownloadHadith(session: Session):
     ).group_by(hadith_evaluation_counts.c.hadith_id).cte('max_counts')
 
     most_frequent_evaluation = session.query(
-        hadith_evaluation_counts.c.hadith_id, hadith_evaluation_counts.c.evaluation_id
+        hadith_evaluation_counts.c.hadith_id,
+        hadith_evaluation_counts.c.evaluation_id,
+        hadith_evaluation_counts.c.count
     ).join(
         max_counts, and_(
             hadith_evaluation_counts.c.hadith_id == max_counts.c.hadith_id,
             hadith_evaluation_counts.c.count == max_counts.c.max_count
         )
-    ).distinct(hadith_evaluation_counts.c.hadith_id).subquery()
+    ).cte('most_frequent_evaluation')
+
+    unique_evaluations = session.query(
+        most_frequent_evaluation.c.hadith_id
+    ).group_by(
+        most_frequent_evaluation.c.hadith_id
+    ).having(
+        func.count(most_frequent_evaluation.c.evaluation_id) == 1
+    ).subquery()
 
     filtered_hadith = session.query(Hadith, TypeHadith).select_from(Hadith).join(
+        unique_evaluations, Hadith.id == unique_evaluations.c.hadith_id
+    ).join(
         most_frequent_evaluation, Hadith.id == most_frequent_evaluation.c.hadith_id
-    ).join(TypeHadith, most_frequent_evaluation.c.evaluation_id == TypeHadith.id).filter(
+    ).join(
+        TypeHadith, most_frequent_evaluation.c.evaluation_id == TypeHadith.id
+    ).filter(
         TypeHadith.id != hadith_maudhuk_info.id
     ).all()
 

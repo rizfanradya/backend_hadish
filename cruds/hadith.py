@@ -84,6 +84,67 @@ def DownloadTemplate():
     return FileResponse(file_path, filename="format.xlsx", media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 
+# def DownloadHadith(session: Session):
+#     keywords = 'maud'
+#     search_terms = keywords.split()
+#     query = session.query(TypeHadith)
+#     conditions = [TypeHadith.type.ilike(f'%{term}%') for term in search_terms]
+#     hadith_maudhuk_info = query.filter(or_(*conditions)).first()
+
+#     if hadith_maudhuk_info is None:
+#         raise HTTPException(
+#             status_code=404, detail=f"Hadith 'Maudhuk' not found")
+
+#     subquery = select(HadithAssesment.hadith_id).filter(
+#         HadithAssesment.evaluation_id == hadith_maudhuk_info.id
+#     ).subquery()
+
+#     hadith_evaluation_counts = session.query(
+#         Hadith.id.label('hadith_id'),
+#         HadithAssesment.evaluation_id,
+#         func.count(HadithAssesment.evaluation_id).label('count')
+#     ).join(HadithAssesment, Hadith.id == HadithAssesment.hadith_id).filter(
+#         not_(Hadith.id.in_(select(subquery)))
+#     ).group_by(
+#         Hadith.id, HadithAssesment.evaluation_id
+#     ).cte('hadith_evaluation_counts')
+
+#     max_counts = session.query(
+#         hadith_evaluation_counts.c.hadith_id,
+#         func.max(hadith_evaluation_counts.c.count).label('max_count')
+#     ).group_by(hadith_evaluation_counts.c.hadith_id).cte('max_counts')
+
+#     most_frequent_evaluation = session.query(
+#         hadith_evaluation_counts.c.hadith_id, hadith_evaluation_counts.c.evaluation_id
+#     ).join(
+#         max_counts, and_(
+#             hadith_evaluation_counts.c.hadith_id == max_counts.c.hadith_id,
+#             hadith_evaluation_counts.c.count == max_counts.c.max_count
+#         )
+#     ).distinct(hadith_evaluation_counts.c.hadith_id).subquery()
+
+#     all_hadith = session.query(Hadith, TypeHadith).select_from(Hadith).join(
+#         most_frequent_evaluation, Hadith.id == most_frequent_evaluation.c.hadith_id
+#     ).join(TypeHadith, most_frequent_evaluation.c.evaluation_id == TypeHadith.id).all()
+
+#     df = pd.DataFrame([{
+#         "Hadith Arab": hadith.hadith_arab,
+#         "Hadith Melayu": hadith.hadith_melayu,
+#         "Explanation": hadith.explanation,
+#         "Evaluation": type_hadith.type
+#     } for hadith, type_hadith in all_hadith])
+
+#     output = BytesIO()
+#     with pd.ExcelWriter(output, engine='openpyxl') as writer:
+#         df.to_excel(writer, index=False, sheet_name='Hadith Data')
+#     output.seek(0)
+
+#     return StreamingResponse(
+#         output,
+#         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+#         headers={"Content-Disposition": "attachment; filename=hadith_data.xlsx"}
+#     )
+
 def DownloadHadith(session: Session):
     keywords = 'maud'
     search_terms = keywords.split()
@@ -95,17 +156,11 @@ def DownloadHadith(session: Session):
         raise HTTPException(
             status_code=404, detail=f"Hadith 'Maudhuk' not found")
 
-    subquery = select(HadithAssesment.hadith_id).filter(
-        HadithAssesment.evaluation_id == hadith_maudhuk_info.id
-    ).subquery()
-
     hadith_evaluation_counts = session.query(
         Hadith.id.label('hadith_id'),
         HadithAssesment.evaluation_id,
         func.count(HadithAssesment.evaluation_id).label('count')
-    ).join(HadithAssesment, Hadith.id == HadithAssesment.hadith_id).filter(
-        not_(Hadith.id.in_(select(subquery)))
-    ).group_by(
+    ).join(HadithAssesment, Hadith.id == HadithAssesment.hadith_id).group_by(
         Hadith.id, HadithAssesment.evaluation_id
     ).cte('hadith_evaluation_counts')
 
@@ -123,16 +178,18 @@ def DownloadHadith(session: Session):
         )
     ).distinct(hadith_evaluation_counts.c.hadith_id).subquery()
 
-    all_hadith = session.query(Hadith, TypeHadith).select_from(Hadith).join(
+    filtered_hadith = session.query(Hadith, TypeHadith).select_from(Hadith).join(
         most_frequent_evaluation, Hadith.id == most_frequent_evaluation.c.hadith_id
-    ).join(TypeHadith, most_frequent_evaluation.c.evaluation_id == TypeHadith.id).all()
+    ).join(TypeHadith, most_frequent_evaluation.c.evaluation_id == TypeHadith.id).filter(
+        TypeHadith.id != hadith_maudhuk_info.id
+    ).all()
 
     df = pd.DataFrame([{
         "Hadith Arab": hadith.hadith_arab,
         "Hadith Melayu": hadith.hadith_melayu,
         "Explanation": hadith.explanation,
         "Evaluation": type_hadith.type
-    } for hadith, type_hadith in all_hadith])
+    } for hadith, type_hadith in filtered_hadith])
 
     output = BytesIO()
     with pd.ExcelWriter(output, engine='openpyxl') as writer:

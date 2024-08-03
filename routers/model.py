@@ -29,9 +29,9 @@ def get_model_by_id(id: int, session: Session = Depends(get_db), token: str = De
 
 
 @router.put("/model/{id}")
-def update_model_info(id: int, name: str, status: bool, file: UploadFile = File(...), session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+def update_model_info(id: int, name: str, status: bool, session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     TokenAuthorization(session, token)
-    return UpdateModel(session, id, name, status, file)
+    return UpdateModel(session, id, name, status)
 
 
 @router.delete("/model/{id}")

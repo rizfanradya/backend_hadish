@@ -8,7 +8,7 @@ from typing import Optional
 from sqlalchemy import or_
 
 
-def CreateModel(session: Session, name: str, file: UploadFile = File(...)):
+def CreateModel(session: Session, name: str, status: bool, file: UploadFile = File(...)):
     MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024  # 2mb
     # if file.content_type not in ['image/jpeg', 'image/png']:
     #     send_error_response(
@@ -36,7 +36,13 @@ def CreateModel(session: Session, name: str, file: UploadFile = File(...)):
             'File not found after saving',
             'File not found after saving'
         )
-    add_new_data = Model(name=name, file=filename)
+    if status:
+        disabled_other_data = session.query(
+            Model).filter(Model.status == True).all()
+        for data in disabled_other_data:
+            data.status = False  # type: ignore
+        session.commit()
+    add_new_data = Model(name=name, file=filename, status=status)
     session.add(add_new_data)
     session.commit()
     session.refresh(add_new_data)
@@ -75,7 +81,7 @@ def GetModelById(session: Session, id: int):
     return model_info
 
 
-def UpdateModel(session: Session, id: int, name: str, file: UploadFile = File(...)):
+def UpdateModel(session: Session, id: int, name: str, status: bool, file: UploadFile = File(...)):
     model_info = GetModelById(session, id)
     MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024  # 2mb
     # if file.content_type not in ['image/jpeg', 'image/png']:
@@ -104,8 +110,15 @@ def UpdateModel(session: Session, id: int, name: str, file: UploadFile = File(..
             'File not found after saving',
             'File not found after saving'
         )
+    if status:
+        disabled_other_data = session.query(
+            Model).filter(Model.status == True).all()
+        for data in disabled_other_data:
+            data.status = False  # type: ignore
+        session.commit()
     model_info.file = filename  # type: ignore
     model_info.name = name  # type: ignore
+    model_info.status = status  # type: ignore
     session.commit()
     session.refresh(model_info)
     query_files = session.query(Model).all()

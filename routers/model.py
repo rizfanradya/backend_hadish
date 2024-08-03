@@ -11,9 +11,9 @@ router = APIRouter()
 
 
 @router.post('/model')
-def create_model(name: str, file: UploadFile = File(...), session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+def create_model(name: str, status: bool, file: UploadFile = File(...), session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     TokenAuthorization(session, token)
-    return CreateModel(session, name, file)
+    return CreateModel(session, name, status, file)
 
 
 @router.get('/model')
@@ -29,9 +29,9 @@ def get_model_by_id(id: int, session: Session = Depends(get_db), token: str = De
 
 
 @router.put("/model/{id}")
-def update_model_info(id: int, name: str, file: UploadFile = File(...), session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+def update_model_info(id: int, name: str, status: bool, file: UploadFile = File(...), session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     TokenAuthorization(session, token)
-    return UpdateModel(session, id, name, file)
+    return UpdateModel(session, id, name, status, file)
 
 
 @router.delete("/model/{id}")

@@ -4,6 +4,7 @@ import jwt
 import os
 from dotenv import load_dotenv
 import hashlib
+from fastapi import HTTPException
 
 load_dotenv()
 
@@ -54,6 +55,26 @@ def create_refresh_token(subject: Union[str, Any], expires_delta=None):
                              key=str(JWT_REFRESH_SECRET_KEY),
                              algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def file_management(database, folder):
+    db_list_files = [data.file for data in database if data.file]
+    local_list_files = os.listdir(folder)
+    files_to_delete = [f for f in local_list_files if f not in db_list_files]
+    for file_name in files_to_delete:
+        file_path = os.path.join(folder, file_name)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+
+def send_error_response(error: str, message: str):
+    raise HTTPException(
+        status_code=404,
+        detail={
+            "message": message,
+            "error": error,
+        }
+    )
 
 
 def data_that_must_exist_in_the_database():

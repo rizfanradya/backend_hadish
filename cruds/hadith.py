@@ -5,7 +5,7 @@ from models.hadith import Hadith
 from models.hadithAssesment import HadithAssesment
 from models.typehadith import TypeHadith
 from typing import Optional
-from sqlalchemy import or_, func, and_, not_, select
+from sqlalchemy import or_, func, and_
 from fastapi import File, UploadFile, HTTPException
 import pandas as pd
 from io import BytesIO

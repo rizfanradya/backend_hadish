@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
-from utils import SERVER_PORT
+from utils import SERVER_PORT, data_that_must_exist_in_the_database
 
 import routers.hadith as hadith
 import routers.role as role
@@ -32,9 +32,11 @@ app.include_router(role.router, tags=["Role API"], prefix="/api")
 
 @app.get("/")
 def root():
+    data_that_must_exist_in_the_database()
     return {"message": "Hadish API"}
 
 
 if __name__ == "__main__":
+    data_that_must_exist_in_the_database()
     uvicorn.run("app:app", host="0.0.0.0", reload=True,
                 port=int(SERVER_PORT))  # type: ignore

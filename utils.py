@@ -3,7 +3,7 @@ from typing import Union, Any
 import jwt
 import os
 from dotenv import load_dotenv
-import calendar
+import hashlib
 
 load_dotenv()
 
@@ -54,3 +54,39 @@ def create_refresh_token(subject: Union[str, Any], expires_delta=None):
                              key=str(JWT_REFRESH_SECRET_KEY),
                              algorithm=ALGORITHM)
     return encoded_jwt
+
+
+def data_that_must_exist_in_the_database():
+    from models.role import Role
+    from models.user import UserInfo
+    from database import SessionLocal
+    session = SessionLocal()
+    role_super_admin = session.query(Role).where(
+        Role.role == 'super administrator').first()
+    role_admin = session.query(Role).where(
+        Role.role == 'administrator').first()
+    role_expert = session.query(Role).where(Role.role == 'expert').first()
+    if not role_super_admin:
+        session.add(Role(role='super administrator'))
+        session.commit()
+    if not role_admin:
+        session.add(Role(role='administrator'))
+        session.commit()
+    if not role_expert:
+        session.add(Role(role='expert'))
+        session.commit()
+    role_super_admin = session.query(Role).where(
+        Role.role == 'super administrator').first()
+    user_super_admin = session.query(UserInfo).where(
+        UserInfo.role == role_super_admin.id).first()  # type: ignore
+    if not user_super_admin:
+        encode_password = '@SuperAdmin123'.encode()
+        hash_password = hashlib.md5(encode_password).hexdigest()
+        session.add(UserInfo(
+            username='superadmin',
+            password=hash_password,
+            role=role_super_admin.id,  # type: ignore
+            first_name='Super',
+            last_name='Admin',
+        ))
+        session.commit()

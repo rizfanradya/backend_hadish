@@ -67,7 +67,7 @@ def file_management(database, folder):
             os.remove(file_path)
 
 
-def send_error_response(error: str, message: str):
+def send_error_response(error: str, message: str) -> HTTPException:
     raise HTTPException(
         status_code=404,
         detail={

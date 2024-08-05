@@ -8,9 +8,10 @@ from typing import Optional
 from sqlalchemy import or_, func, and_
 from fastapi import File, UploadFile, HTTPException
 import pandas as pd
-from io import BytesIO
-from starlette.responses import FileResponse, StreamingResponse
-import os
+from io import StringIO
+from starlette.responses import StreamingResponse
+import csv
+from utils import send_error_response
 
 
 def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_info):
@@ -40,122 +41,104 @@ def CreateHadith(session: Session, hadith_info: CreateAndUpdateHadith, token_inf
 
 
 async def UploadFileHadith(session: Session, token_info, file: UploadFile = File(...)):
-    if not file.filename.endswith('.xlsx'):  # type: ignore
-        raise HTTPException(
-            status_code=404, detail="Invalid file format. Only .xlsx files are allowed.")
+    if not file.filename.endswith('.csv'):  # type: ignore
+        send_error_response(
+            "Invalid file format",
+            "File must be in CSV format"
+        )
 
     try:
-        df = pd.read_excel(file.file)
-    except Exception as error:
+        df = pd.read_csv(file.file)
+    except Exception:
         try:
             file.file.seek(0)
-            excel_data = file.file.read()
-            file_bytes = BytesIO(excel_data)
-            df = pd.read_excel(file_bytes)
-        except:
-            raise HTTPException(
-                status_code=404, detail="Could not read the Excel file.")
+            csv_data = file.file.read().decode('utf-8')
+            file_string = StringIO(csv_data)
+            df = pd.read_csv(file_string)
+        except Exception as error:
+            send_error_response(str(error), "Could not read the CSV file.")
+
+    valid_evaluation_ids = {
+        type.id for type in session.query(TypeHadith).all()}
+    invalid_ids = df[~df['evaluation_id'].isin(
+        valid_evaluation_ids)]['evaluation_id'].unique()
+    if invalid_ids.size > 0:
+        send_error_response(
+            f"Invalid evaluation id(s): {', '.join(map(str, invalid_ids))}",
+            f"Invalid evaluation id(s): {', '.join(map(str, invalid_ids))}"
+        )
 
     try:
         df = df.fillna('')
         hadith_entries = []
+        hadith_assessment_entries = []
+
         for _, row in df.iterrows():
             hadith_entry = Hadith(
                 hadith_arab=row['hadish_arab'],
                 hadith_melayu=row['hadish_melayu'],
                 explanation=row['keterangan'],
-                created_by=token_info.id,
-                updated_by=token_info.id
-            )  # type: ignore
+            )
             hadith_entries.append(hadith_entry)
 
-        session.bulk_save_objects(hadith_entries)
+        session.add_all(hadith_entries)
         session.commit()
-    except Exception as error:
-        raise HTTPException(status_code=404, detail='Invalid Excel format')
+        for hadith_entry in hadith_entries:
+            session.refresh(hadith_entry)
 
+        for _, row in df.iterrows():
+            hadith = next(
+                (
+                    entry for entry in hadith_entries
+                    if entry.hadith_arab == row['hadish_arab']
+                    and entry.hadith_melayu == row['hadish_melayu']
+                    and entry.explanation == row['keterangan']
+                ), None
+            )
+            if hadith:
+                hadith_assessment = HadithAssesment(
+                    hadith_id=hadith.id,
+                    evaluation_id=row['evaluation_id'],
+                    user_id=token_info.id
+                )
+                hadith_assessment_entries.append(hadith_assessment)
+
+        session.add_all(hadith_assessment_entries)
+        session.commit()
+        for hadith_assessment_entry in hadith_assessment_entries:
+            session.refresh(hadith_assessment_entry)
+
+    except Exception as error:
+        send_error_response(str(error), "Invalid CSV format")
     return hadith_entries
 
 
-def DownloadTemplate():
-    file_path = "/project/backend_hadish/uploads/format.xlsx"
-    if not os.path.exists(file_path):
-        raise HTTPException(status_code=404, detail="File not found.")
-    return FileResponse(file_path, filename="format.xlsx", media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+def DownloadTemplate(session: Session):
+    type_hadith = session.query(TypeHadith).all()
+    buffer = StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([
+        "no",
+        "hadish_arab",
+        "hadish_melayu",
+        "keterangan",
+        "evaluation_id",
+    ])
+    writer.writerow(["", "", "", "", "", "", "", "id", "evaluation"])
+    for type in type_hadith:
+        writer.writerow(["", "", "", "", "", "", "",
+                        f"{type.id}", f"{type.type}"])
+    buffer.seek(0)
+    return StreamingResponse(
+        buffer,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=format_hadith.csv"}
+    )
 
-
-# def DownloadHadith(session: Session):
-#     keywords = 'maud'
-#     search_terms = keywords.split()
-#     query = session.query(TypeHadith)
-#     conditions = [TypeHadith.type.ilike(f'%{term}%') for term in search_terms]
-#     hadith_maudhuk_info = query.filter(or_(*conditions)).first()
-
-#     if hadith_maudhuk_info is None:
-#         raise HTTPException(
-#             status_code=404, detail=f"Hadith 'Maudhuk' not found")
-
-#     subquery = select(HadithAssesment.hadith_id).filter(
-#         HadithAssesment.evaluation_id == hadith_maudhuk_info.id
-#     ).subquery()
-
-#     hadith_evaluation_counts = session.query(
-#         Hadith.id.label('hadith_id'),
-#         HadithAssesment.evaluation_id,
-#         func.count(HadithAssesment.evaluation_id).label('count')
-#     ).join(HadithAssesment, Hadith.id == HadithAssesment.hadith_id).filter(
-#         not_(Hadith.id.in_(select(subquery)))
-#     ).group_by(
-#         Hadith.id, HadithAssesment.evaluation_id
-#     ).cte('hadith_evaluation_counts')
-
-#     max_counts = session.query(
-#         hadith_evaluation_counts.c.hadith_id,
-#         func.max(hadith_evaluation_counts.c.count).label('max_count')
-#     ).group_by(hadith_evaluation_counts.c.hadith_id).cte('max_counts')
-
-#     most_frequent_evaluation = session.query(
-#         hadith_evaluation_counts.c.hadith_id, hadith_evaluation_counts.c.evaluation_id
-#     ).join(
-#         max_counts, and_(
-#             hadith_evaluation_counts.c.hadith_id == max_counts.c.hadith_id,
-#             hadith_evaluation_counts.c.count == max_counts.c.max_count
-#         )
-#     ).distinct(hadith_evaluation_counts.c.hadith_id).subquery()
-
-#     all_hadith = session.query(Hadith, TypeHadith).select_from(Hadith).join(
-#         most_frequent_evaluation, Hadith.id == most_frequent_evaluation.c.hadith_id
-#     ).join(TypeHadith, most_frequent_evaluation.c.evaluation_id == TypeHadith.id).all()
-
-#     df = pd.DataFrame([{
-#         "Hadith Arab": hadith.hadith_arab,
-#         "Hadith Melayu": hadith.hadith_melayu,
-#         "Explanation": hadith.explanation,
-#         "Evaluation": type_hadith.type
-#     } for hadith, type_hadith in all_hadith])
-
-#     output = BytesIO()
-#     with pd.ExcelWriter(output, engine='openpyxl') as writer:
-#         df.to_excel(writer, index=False, sheet_name='Hadith Data')
-#     output.seek(0)
-
-#     return StreamingResponse(
-#         output,
-#         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-#         headers={"Content-Disposition": "attachment; filename=hadith_data.xlsx"}
-#     )
 
 def DownloadHadith(session: Session):
-    keywords = 'maud'
-    search_terms = keywords.split()
-    query = session.query(TypeHadith)
-    conditions = [TypeHadith.type.ilike(f'%{term}%') for term in search_terms]
-    hadith_maudhuk_info = query.filter(or_(*conditions)).first()
-
-    if hadith_maudhuk_info is None:
-        raise HTTPException(
-            status_code=404, detail=f"Hadith 'Maudhuk' not found")
-
+    # Compute the count of each evaluation for every Hadith
+    # Hitung jumlah setiap evaluasi untuk setiap Hadis
     hadith_evaluation_counts = session.query(
         Hadith.id.label('hadith_id'),
         HadithAssesment.evaluation_id,
@@ -164,11 +147,15 @@ def DownloadHadith(session: Session):
         Hadith.id, HadithAssesment.evaluation_id
     ).cte('hadith_evaluation_counts')
 
+    # Determine the maximum count for each Hadith
+    # Tentukan jumlah maksimal setiap hadis
     max_counts = session.query(
         hadith_evaluation_counts.c.hadith_id,
         func.max(hadith_evaluation_counts.c.count).label('max_count')
     ).group_by(hadith_evaluation_counts.c.hadith_id).cte('max_counts')
 
+    # Find the evaluations that have the maximum count for each Hadith
+    # Temukan evaluasi yang memiliki jumlah maksimum untuk setiap Hadis
     most_frequent_evaluation = session.query(
         hadith_evaluation_counts.c.hadith_id,
         hadith_evaluation_counts.c.evaluation_id,
@@ -180,6 +167,8 @@ def DownloadHadith(session: Session):
         )
     ).cte('most_frequent_evaluation')
 
+    # Filter out Hadith with unique most frequent evaluation
+    # Saring Hadits dengan evaluasi unik yang paling sering
     unique_evaluations = session.query(
         most_frequent_evaluation.c.hadith_id
     ).group_by(
@@ -188,32 +177,34 @@ def DownloadHadith(session: Session):
         func.count(most_frequent_evaluation.c.evaluation_id) == 1
     ).subquery()
 
+    # Fetch the filtered Hadith and their evaluations
+    # Ambil Hadits yang disaring dan evaluasinya
     filtered_hadith = session.query(Hadith, TypeHadith).select_from(Hadith).join(
         unique_evaluations, Hadith.id == unique_evaluations.c.hadith_id
     ).join(
         most_frequent_evaluation, Hadith.id == most_frequent_evaluation.c.hadith_id
     ).join(
         TypeHadith, most_frequent_evaluation.c.evaluation_id == TypeHadith.id
-    ).filter(
-        TypeHadith.id != hadith_maudhuk_info.id
     ).all()
 
+    # Create a DataFrame from the results
+    # Buat DataFrame dari hasilnya
     df = pd.DataFrame([{
+        "id": hadith.id,
         "Hadith Arab": hadith.hadith_arab,
         "Hadith Melayu": hadith.hadith_melayu,
         "Explanation": hadith.explanation,
         "Evaluation": type_hadith.type
     } for hadith, type_hadith in filtered_hadith])
 
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Hadith Data')
+    df = df.sort_values(by="id")
+    output = StringIO()
+    df.to_csv(output, index=False)
     output.seek(0)
-
     return StreamingResponse(
         output,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": "attachment; filename=hadith_data.xlsx"}
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=hadith_data.csv"}
     )
 
 

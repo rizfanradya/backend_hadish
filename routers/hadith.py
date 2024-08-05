@@ -27,7 +27,7 @@ async def upload_data_hadith(file: UploadFile = File(...), session: Session = De
 @router.get('/hadith/template')
 def download_hadith_template(session: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     TokenAuthorization(session, token)
-    return DownloadTemplate()
+    return DownloadTemplate(session)
 
 
 @router.get('/hadith/download')

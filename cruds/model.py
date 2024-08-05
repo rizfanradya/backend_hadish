@@ -83,9 +83,10 @@ def GetModelById(session: Session, id: int):
 
 def UpdateModel(session: Session, id: int, name: str, status: bool):
     model_info = GetModelById(session, id)
+
     if status:
         disabled_other_data = session.query(
-            Model).filter(Model.status == True).all()
+            Model).where(Model.status == True).all()
         for data in disabled_other_data:
             data.status = False  # type: ignore
         session.commit()
@@ -93,6 +94,17 @@ def UpdateModel(session: Session, id: int, name: str, status: bool):
     model_info.status = status  # type: ignore
     session.commit()
     session.refresh(model_info)
+
+    if not session.query(Model).where(Model.status == True).all():
+        model_info.name = name  # type: ignore
+        model_info.status = True  # type: ignore
+        session.commit()
+        session.refresh(model_info)
+        send_error_response(
+            "At least one model must be active",
+            "At least one model must be active"
+        )
+
     return model_info
 
 
